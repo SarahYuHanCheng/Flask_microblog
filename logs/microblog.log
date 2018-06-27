@@ -1,4 +1,4 @@
-2018-06-26 09:04:01,025 ERROR: Exception on /user [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+2018-06-27 17:36:26,947 ERROR: Exception on /expolre [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
 Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
     rv = self.dispatch_request()
