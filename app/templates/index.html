@@ -4,6 +4,7 @@
 	{% if form %}
 	<form action="" method="post">
 		{{ form.hidden_tag()}}
+		<!-- The form.hidden_tag() template argument generates a hidden field that includes a token that is used to protect the form against CSRF attacks. !-->
 		<p>
 			{{ form.post.label }}<br>
 			{{ form.post(cols=32, row=4) }}<br>

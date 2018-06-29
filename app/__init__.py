@@ -6,6 +6,7 @@ from flask_login import LoginManager
 import os
 import logging #python package, DEBUG, INFO, WARNING, ERROR and CRITICAL
 from logging.handlers import SMTPHandler, RotatingFileHandler
+from flask_mail import Mail
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -13,6 +14,7 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 login = LoginManager(app)
 login.login_view = 'login' #would use in a url_for() call to get the URL.
+mail = Mail(app)
 
 from app import routes,models, errors
 
