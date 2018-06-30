@@ -17,7 +17,12 @@ login = LoginManager(app)
 login.login_view = 'login' #would use in a url_for() call to get the URL.
 mail = Mail(app)
 bootstrap = Bootstrap(app)
-
+app.config['OAUTH_CREDENTIALS'] = {
+    'facebook': {
+        'id': '160139164703343',
+        'secret': '4a005ebc42acab187de54ba991ef3ea6'
+    }
+}
 from app import routes,models, errors
 
 if not app.debug:

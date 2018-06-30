@@ -1,7 +1,7 @@
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from app import db
-from flask_login import UserMixin
+from flask_login import UserMixin #,LoginManager
 from app import login, app
 from hashlib import md5
 from time import time
@@ -12,13 +12,16 @@ followers = db.Table('followers',
     db.Column('followed_id',db.Integer, db.ForeignKey('user.id'))
     )
 
+# lm = LoginManager(app)
+# lm.login_view = 'index'
 
-@login.user_loader
+@login.user_loader #@lm.user_loader
 def load_user(id):
 	return User.query.get(int(id))
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    social_id = db.Column(db.String(64), unique=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))

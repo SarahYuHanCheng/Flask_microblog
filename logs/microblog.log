@@ -1,4 +1,4 @@
-2018-06-29 12:43:43,454 ERROR: Exception on /reset_password_request [POST] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+2018-06-30 23:47:04,955 ERROR: Exception on / [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
 Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
     response = self.full_dispatch_request()
@@ -12,10 +12,10 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
     return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/routes.py", line 153, in reset_password_request
-    send_password_reset_email(user)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/email.py", line 18, in send_password_reset_email
-    html_body= render_template('email/reset_password.html', user=user, token=token)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
+    return func(*args, **kwargs)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/routes.py", line 34, in index
+    return render_template('index.html', title="Home", form=form, posts=posts.items, next_url=next_url,prev_url=prev_url)
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 135, in render_template
     context, ctx.app)
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 117, in _render
@@ -28,8 +28,20 @@ Traceback (most recent call last):
     reraise(exc_type, exc_value, tb)
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/_compat.py", line 37, in reraise
     raise value.with_traceback(tb)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/email/reset_password.html", line 4, in top-level template code
-    <a href="{{ url_for('reset_password, token=token, _external=True') }}">
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/index.html", line 2, in top-level template code
+    {% import 'bootstrap/wtf.html' as wtf %}
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/base.html", line 1, in top-level template code
+    {% extends 'bootstrap/base.html' %}
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_bootstrap/templates/bootstrap/base.html", line 1, in top-level template code
+    {% block doc -%}
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_bootstrap/templates/bootstrap/base.html", line 4, in block "doc"
+    {%- block html %}
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_bootstrap/templates/bootstrap/base.html", line 20, in block "html"
+    {% block body -%}
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_bootstrap/templates/bootstrap/base.html", line 21, in block "body"
+    {% block navbar %}
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/base.html", line 28, in block "navbar"
+    <li><a href="{{ url_for('user', username=current_user.username) }}">Profile</a></li>
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/helpers.py", line 356, in url_for
     return appctx.app.handle_url_build_error(error, endpoint, values)
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2061, in handle_url_build_error
@@ -40,30 +52,4 @@ Traceback (most recent call last):
     force_external=external)
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/werkzeug/routing.py", line 1776, in build
     raise BuildError(endpoint, values, method, self)
-werkzeug.routing.BuildError: Could not build url for endpoint 'reset_password, token=token, _external=True'. Did you mean 'reset_password_request' instead?
-2018-06-29 13:35:28,143 ERROR: Exception on /reset_password/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyZXNldF9wYXNzd29yZCI6NywiZXhwIjoxNTMwMjUxMDkwLjkyMDk2OX0.Y3-ZMhSvrnf_kcgxYc-Bjirw3MYUJqzGSmC9FCadkCY [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
-Traceback (most recent call last):
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/models.py", line 81, in verify_reset_password_token
-    id=jwt.decode(token, app.config['SECRET_KEY'],algorithms=['HS256'])['reset_password']
-NameError: name 'token' is not defined
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
-    response = self.full_dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
-    reraise(exc_type, exc_value, tb)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
-    raise value
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
-    return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/routes.py", line 164, in reset_password
-    user = User.verify_reset_password_token(token)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/models.py", line 83, in verify_reset_password_token
-    print("error: "+error)
-NameError: name 'error' is not defined
+werkzeug.routing.BuildError: Could not build url for endpoint 'user'. Did you forget to specify values ['username']?
