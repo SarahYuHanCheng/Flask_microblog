@@ -7,6 +7,7 @@ import os
 import logging #python package, DEBUG, INFO, WARNING, ERROR and CRITICAL
 from logging.handlers import SMTPHandler, RotatingFileHandler
 from flask_mail import Mail
+from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -15,6 +16,7 @@ migrate = Migrate(app, db)
 login = LoginManager(app)
 login.login_view = 'login' #would use in a url_for() call to get the URL.
 mail = Mail(app)
+bootstrap = Bootstrap(app)
 
 from app import routes,models, errors
 
