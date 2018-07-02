@@ -21,6 +21,10 @@ app.config['OAUTH_CREDENTIALS'] = {
     'facebook': {
         'id': '160139164703343',
         'secret': '4a005ebc42acab187de54ba991ef3ea6'
+    },
+    'google': {
+        'id': '160139164703343',
+        'secret': '4a005ebc42acab187de54ba991ef3ea6'
     }
 }
 from app import routes,models, errors

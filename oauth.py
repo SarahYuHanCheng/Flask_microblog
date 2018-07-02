@@ -47,7 +47,7 @@ class FacebookSignIn(OAuthSignIn):
 
     def authorize(self):
         return redirect(self.service.get_authorize_url(
-            scope='email',
+            scope='email,user_friends,public_profile',
             response_type='code',
             redirect_uri=self.get_callback_url())
         )
@@ -65,12 +65,14 @@ class FacebookSignIn(OAuthSignIn):
             decoder=decode_json
         )
         me = oauth_session.get('me?fields=id,email').json()
+        print(me)
         return (
             'facebook$' + me['id'],
             me.get('email').split('@')[0],  # Facebook does not provide
                                             # username, so the email's user
                                             # is used instead
-            me.get('email')
+            me.get('email'),
+            me.get('/'+me['id']+'/picture?redirect=false'),
         )
 
 
