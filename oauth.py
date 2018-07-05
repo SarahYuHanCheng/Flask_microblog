@@ -71,8 +71,7 @@ class FacebookSignIn(OAuthSignIn):
             me.get('email').split('@')[0],  # Facebook does not provide
                                             # username, so the email's user
                                             # is used instead
-            me.get('email'),
-            me.get('/'+me['id']+'/picture?redirect=false'),
+            me.get('email')
         )
 
 
