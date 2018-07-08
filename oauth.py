@@ -58,20 +58,29 @@ class FacebookSignIn(OAuthSignIn):
 
         if 'code' not in request.args:
             return None, None, None
+        # access_token=self.service.get_access_token(decoder=decode_json,
+        #     data={'code': request.args['code'],
+        #           'grant_type': 'authorization_code',
+        #           'redirect_uri': self.get_callback_url()})
+        # print("access_token "+access_token)
+
         oauth_session = self.service.get_auth_session(
             data={'code': request.args['code'],
                   'grant_type': 'authorization_code',
                   'redirect_uri': self.get_callback_url()},
             decoder=decode_json
         )
-        me = oauth_session.get('me?fields=id,email').json()
+        me = oauth_session.get('me?fields=id,email,picture,friends').json()
         print(me)
+
         return (
             'facebook$' + me['id'],
             me.get('email').split('@')[0],  # Facebook does not provide
                                             # username, so the email's user
                                             # is used instead
-            me.get('email')
+            me.get('email'),
+            me.get('picture'),
+            me.get('friends')
         )
 
 

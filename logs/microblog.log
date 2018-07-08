@@ -1,4 +1,13 @@
-2018-07-02 18:50:13,751 ERROR: Exception on /callback/facebook [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+2018-07-05 23:17:52,780 ERROR: Exception on /callback/facebook [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+Traceback (most recent call last):
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/rauth/service.py", line 21, in process_token_request
+    return tuple(data[key] for key in args)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/rauth/service.py", line 21, in <genexpr>
+    return tuple(data[key] for key in args)
+KeyError: 'access_token'
+
+During handling of the above exception, another exception occurred:
+
 Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
     response = self.full_dispatch_request()
@@ -13,39 +22,13 @@ Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
     return self.view_functions[rule.endpoint](**req.view_args)
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/routes.py", line 185, in oauth_callback
-    social_id, username, email = oauth.callback()
-ValueError: too many values to unpack (expected 3)
-2018-07-02 18:52:59,670 ERROR: Exception on /callback/facebook [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
-Traceback (most recent call last):
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
-    response = self.full_dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
-    reraise(exc_type, exc_value, tb)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
-    raise value
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
-    return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/routes.py", line 185, in oauth_callback
-    social_id, username, email = oauth.callback()
-ValueError: too many values to unpack (expected 3)
-2018-07-02 18:58:00,485 ERROR: Exception on /callback/facebook [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
-Traceback (most recent call last):
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
-    response = self.full_dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
-    reraise(exc_type, exc_value, tb)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
-    raise value
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
-    return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/routes.py", line 185, in oauth_callback
-    social_id, username, email,a,b,c = oauth.callback()
-ValueError: not enough values to unpack (expected 6, got 4)
+    social_id, username, email= oauth.callback()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/oauth.py", line 71, in callback
+    decoder=decode_json
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/rauth/service.py", line 556, in get_auth_session
+    session = self.get_session(self.get_access_token(method, **kwargs))
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/rauth/service.py", line 542, in get_access_token
+    access_token, = process_token_request(r, decoder, key)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/rauth/service.py", line 24, in process_token_request
+    raise KeyError(PROCESS_TOKEN_ERROR.format(key=bad_key, raw=r.content))
+KeyError: 'Decoder failed to handle access_token with data as returned by provider. A different decoder may be needed. Provider returned: b\'{"error":{"message":"This authorization code has been used.","type":"OAuthException","code":100,"fbtrace_id":"DHx3+F1OBfS"}}\''
