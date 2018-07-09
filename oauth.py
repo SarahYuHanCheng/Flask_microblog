@@ -20,7 +20,8 @@ class OAuthSignIn(object):
         pass
 
     def get_callback_url(self):
-        return url_for('oauth_callback', provider=self.provider_name,
+        print('get_callback_url：', self.provider_name)
+        return url_for('auth.oauth_callback', provider=self.provider_name,
                        _external=True)
 
     @classmethod
@@ -46,6 +47,7 @@ class FacebookSignIn(OAuthSignIn):
         )
 
     def authorize(self):
+        print('authorize')
         return redirect(self.service.get_authorize_url(
             scope='email,user_friends,public_profile',
             response_type='code',
@@ -58,11 +60,6 @@ class FacebookSignIn(OAuthSignIn):
 
         if 'code' not in request.args:
             return None, None, None
-        # access_token=self.service.get_access_token(decoder=decode_json,
-        #     data={'code': request.args['code'],
-        #           'grant_type': 'authorization_code',
-        #           'redirect_uri': self.get_callback_url()})
-        # print("access_token "+access_token)
 
         oauth_session = self.service.get_auth_session(
             data={'code': request.args['code'],
