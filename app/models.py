@@ -6,7 +6,32 @@ from app import login
 from hashlib import md5
 from time import time
 import jwt
-from flask import current_app
+from flask import current_app, url_for
+
+
+class PaginatedAPIMixin(object):
+    @staticmethod
+    def to_collection_dict(query, page, per_page, endpoint, **kwargs):
+        resources = query.paginate(page, per_page, False)
+        data = {
+            'items': [item.to_dict() for item in resources.items],
+            '_meta': {
+                'page': page,
+                'per_page': per_page,
+                'total_pages': resources.pages,
+                'total_items': resources.total
+            },
+            '_links': {
+                'self': url_for(endpoint, page=page, per_page=per_page,
+                                **kwargs),
+                'next': url_for(endpoint, page=page + 1, per_page=per_page,
+                                **kwargs) if resources.has_next else None,
+                'prev': url_for(endpoint, page=page - 1, per_page=per_page,
+                                **kwargs) if resources.has_prev else None
+            }
+        }
+        return data
+
 
 followers = db.Table('followers', 
     db.Column('follower_id',db.Integer, db.ForeignKey('user.id')),
@@ -20,7 +45,7 @@ followers = db.Table('followers',
 def load_user(id):
 	return User.query.get(int(id))
 
-class User(UserMixin, db.Model):
+class User(PaginatedAPIMixin, UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     social_id = db.Column(db.String(64), unique=True)
     username = db.Column(db.String(64), index=True, unique=True)
@@ -87,6 +112,34 @@ class User(UserMixin, db.Model):
         except:
             return
         return User.query.get(id)
+
+    def to_dict(self, include_email=False):
+        data = {
+            'id':self.id,
+            'username': self.username,
+            'last_seen':self.about_me,
+            'post_count': self.posts.count(),
+            'follower_count':self.followers.count(),
+            'followed_id': self.followed.count(),
+            '_links': {
+                'self': url_for('api.get_user', id=self.id),
+                'followers': url_for('api.get_followers', id=self.id),
+                'followed': url_for('api.get_followed', id=self.id),
+                'avatar': self.avatar(128)
+            }
+        }
+        if include_email:
+            data['email']=self.email 
+        return data
+
+    def from_dict(self, data, new_user=False):
+        for field in ['username', 'email', 'about_me']:
+            if field in data:
+                setattr(self, field, data[field])
+        if new_user and 'password' in data:
+            self.set_password(data['password'])
+
+
 class Post(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	body = db.Column(db.String(140))

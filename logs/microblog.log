@@ -46,3 +46,41 @@ Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/oauth.py", line 58, in callback
     print('payload: ',payload)
 NameError: name 'payload' is not defined
+2018-07-10 16:45:24,995 ERROR: Exception on /api/users/1 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+Traceback (most recent call last):
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
+    raise value
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/api/users.py", line 7, in get_user
+    return jsonify(User.query.get_or_404(id).to_dict())
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/models.py", line 125, in to_dict
+    'self': url_for('api.get_user', id=self.id),
+NameError: name 'url_for' is not defined
+2018-07-10 16:46:25,729 ERROR: Exception on /api/users/1 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+Traceback (most recent call last):
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
+    raise value
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/api/users.py", line 7, in get_user
+    return jsonify(User.query.get_or_404(id).to_dict())
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/models.py", line 125, in to_dict
+    'self': url_for('api.get_user', id=self.id),
+NameError: name 'url_for' is not defined
