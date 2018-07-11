@@ -1,13 +1,13 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-from app import db
 from flask_login import UserMixin #,LoginManager
-from app import login
 from hashlib import md5
 from time import time
 import jwt
 from flask import current_app, url_for
-
+import base64
+import os
+from app import db, login
 
 class PaginatedAPIMixin(object):
     @staticmethod
@@ -37,7 +37,6 @@ followers = db.Table('followers',
     db.Column('follower_id',db.Integer, db.ForeignKey('user.id')),
     db.Column('followed_id',db.Integer, db.ForeignKey('user.id'))
     )
-
 # lm = LoginManager(app)
 # lm.login_view = 'index'
 
@@ -47,6 +46,8 @@ def load_user(id):
 
 class User(PaginatedAPIMixin, UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    token = db.Column(db.String(32), index=True, unique=True)
+    token_expiration = db.Column(db.DateTime)
     social_id = db.Column(db.String(64), unique=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
@@ -57,12 +58,14 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
     #mode of dynamic sets up the query to not run until specifically requested
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    
     followed = db.relationship(
         'User', secondary=followers,
         primaryjoin=(followers.c.follower_id==id),
         secondaryjoin=(followers.c.followed_id ==id),
         backref=db.backref('followers', lazy='dynamic'),lazy='dynamic'
     )
+
 
     def __repr__(self): #__repr__() tells Python how to print objects of this class
         return '<User {}>'.format(self.username)
@@ -114,6 +117,7 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
         return User.query.get(id)
 
     def to_dict(self, include_email=False):
+        print('self:',self.id)
         data = {
             'id':self.id,
             'username': self.username,
@@ -139,6 +143,23 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
         if new_user and 'password' in data:
             self.set_password(data['password'])
 
+    def get_token(self, expires_in=3600):
+        now = datetime.utcnow()
+        if self.token and self.token_expiration > now + timedelta(seconds=60):
+            return self.token   
+        self.token = base64.b64encode(os.urandom(24)).decode('utf-8')
+        self.token_expiration = now + timedelta(seconds=expires_in)
+        db.session.add(self)
+        return self.token
+    def revoke_token(self):
+        self.token_expiration = datetime.utcnow() - timedelta(seconds=1)
+
+    @staticmethod
+    def check_token(token):
+        user = User.query.filter_by(token=token).first()
+        if user is None or user.token_expiration < datetime.utcnow():
+            return None
+        return user   
 
 class Post(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
