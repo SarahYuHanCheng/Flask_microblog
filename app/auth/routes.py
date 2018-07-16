@@ -78,7 +78,6 @@ def reset_password(token):
 
 @bp.route('/authorize/<provider>')
 def oauth_authorize(provider):
-    print('authorize')
     if not current_user.is_anonymous:
         return redirect(url_for('main.index'))
     oauth = OAuthSignIn.get_provider(provider)
@@ -87,13 +86,12 @@ def oauth_authorize(provider):
 
 @bp.route('/callback/<provider>')
 def oauth_callback(provider):
-    print('oauth_callback')
     if not current_user.is_anonymous:
         return redirect(url_for('main.index'))
     oauth = OAuthSignIn.get_provider(provider)
     social_id, username, email,picture,friends= oauth.callback()
-    print(picture)
-    print(friends)
+    print('/callback')
+    print(friends['data'])
     if social_id is None:
         flash('Authentication failed.')
         return redirect(url_for('main.index'))
@@ -103,4 +101,4 @@ def oauth_callback(provider):
         db.session.add(user)
         db.session.commit()
     login_user(user, True)
-    return redirect(url_for('main.index'))
+    return redirect(url_for('main.index',friends=friends['data']))

@@ -1,8 +1,8 @@
-"""User social_Id
+"""add social
 
-Revision ID: d73ffc6bf6a5
-Revises: 51f07833b257
-Create Date: 2018-06-30 22:52:36.455984
+Revision ID: 0bed6d792a3a
+Revises: e8415866190a
+Create Date: 2018-07-16 15:51:52.850766
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'd73ffc6bf6a5'
-down_revision = '51f07833b257'
+revision = '0bed6d792a3a'
+down_revision = 'e8415866190a'
 branch_labels = None
 depends_on = None
 

@@ -19,6 +19,8 @@ def before_request():
 @bp.route('/index', methods=['GET','POST'])
 @login_required
 def index():
+	print('/index')
+	print(request.args.get('friends'))
 	form= PostForm()
 	if form.validate_on_submit():
 		post = Post(body=form.post.data, author=current_user)
