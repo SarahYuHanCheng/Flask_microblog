@@ -5,7 +5,7 @@ from app import db
 from app.api.errors import bad_request 
 from flask_httpauth import HTTPTokenAuth
 from app.api.auth import token_auth
-token_auth = HTTPTokenAuth()
+# token_auth = HTTPTokenAuth()
 
 @bp.route('/users/<int:id>',methods=['GET'])
 @token_auth.login_required
@@ -17,6 +17,7 @@ def get_user(id):
 @bp.route('/users/',methods=['GET'])
 @token_auth.login_required
 def get_users():
+	print("get_users")
 	page = request.args.get('page', 1, type=int)
 	per_page = min(request.args.get('per_page',10, type=int), 100)
 	data = User.to_collection_dict(User.query, page, per_page, 'api.get_users')
