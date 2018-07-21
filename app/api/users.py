@@ -5,7 +5,6 @@ from app import db
 from app.api.errors import bad_request 
 from flask_httpauth import HTTPTokenAuth
 from app.api.auth import token_auth
-# token_auth = HTTPTokenAuth()
 
 @bp.route('/users/<int:id>',methods=['GET'])
 @token_auth.login_required

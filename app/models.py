@@ -169,3 +169,49 @@ class Post(db.Model):
 
 	def __repr__(self):
 		return '<Post {}>'.format(self.body)
+
+class Code(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.String(1024))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    commit_msg = db.Column(db.String(140))
+    log_id = db.Column(db.Integer, db.ForeignKey('log.id'))
+    
+    def __repr__(self):
+        return '<Code {}>'.format(self.body)
+
+class Log(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    record_content = db.Column(db.String(1024),default='record_content')
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
+    winner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    score = db.Column(db.Integer,default='100200')
+
+    def __repr__(self):
+        return '<Log {}>'.format(self.game_id)
+
+class Game(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    descript = db.Column(db.String(1024))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    game_lib = db.Column(db.String(10240))
+    example_code = db.Column(db.String(1024))
+
+    def __repr__(self):
+        return '<Game {}>'.format(self.descript)
+
+class Comment(db.Model):
+    """docstring for Comment"""
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.String(140))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    code_id = db.Column(db.Integer, db.ForeignKey('code.id'))
+
+    def __repr__(self):
+        return '<Comment {}>'.format(self.body)
+   
+        

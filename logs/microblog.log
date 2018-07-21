@@ -1,4 +1,4 @@
-2018-07-18 10:48:31,095 ERROR: Exception on /api/users/ [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+2018-07-20 21:55:48,093 ERROR: Exception on /games/codes/01 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
 Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
     response = self.full_dispatch_request()
@@ -12,12 +12,12 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
     return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_httpauth.py", line 100, in decorated
-    password = self.get_auth_password(auth)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_httpauth.py", line 84, in get_auth_password
-    print('auth.username> ',auth.username)
-AttributeError: 'NoneType' object has no attribute 'username'
-2018-07-18 10:53:56,493 ERROR: Exception on /api/users/2 [PUT] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
+    return func(*args, **kwargs)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 55, in comment_code
+    form = CommentCodeForm() #current_log.id
+NameError: name 'CommentCodeForm' is not defined
+2018-07-20 21:56:36,656 ERROR: Exception on /games/codes/01 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
 Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
     response = self.full_dispatch_request()
@@ -31,12 +31,12 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
     return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_httpauth.py", line 100, in decorated
-    password = self.get_auth_password(auth)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_httpauth.py", line 84, in get_auth_password
-    print('auth.username> ',auth.username)
-AttributeError: 'NoneType' object has no attribute 'username'
-2018-07-18 11:34:06,083 ERROR: Exception on /api/tokens [POST] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
+    return func(*args, **kwargs)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 64, in comment_code
+    form.commit_msg.data = current_log#current_log.commit_msg
+AttributeError: 'CommentCodeForm' object has no attribute 'commit_msg'
+2018-07-20 21:56:51,273 ERROR: Exception on /games/codes/01 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
 Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
     response = self.full_dispatch_request()
@@ -50,14 +50,8 @@ Traceback (most recent call last):
     rv = self.dispatch_request()
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
     return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_httpauth.py", line 104, in decorated
-    if not self.authenticate(auth, password):
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_httpauth.py", line 144, in authenticate
-    return self.verify_password_callback(username, client_password)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/api/auth.py", line 15, in verify_password
-    return user.check_password(password)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/models.py", line 77, in check_password
-    return check_password_hash(self.password_hash, password)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/werkzeug/security.py", line 245, in check_password_hash
-    if pwhash.count('$') < 2:
-AttributeError: 'NoneType' object has no attribute 'count'
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
+    return func(*args, **kwargs)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 64, in comment_code
+    form.commit_msg.data = current_log#current_log.commit_msg
+AttributeError: 'CommentCodeForm' object has no attribute 'commit_msg'

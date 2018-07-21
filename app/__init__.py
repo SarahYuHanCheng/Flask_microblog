@@ -45,6 +45,9 @@ def create_app(config_class=Config):
 
 	from app.api import bp as api_bp
 	app.register_blueprint(api_bp, url_prefix='/api')
+	
+	from app.games import bp as games_bp
+	app.register_blueprint(games_bp, url_prefix='/games')
 
 	app.config['OAUTH_CREDENTIALS'] = {
     'facebook': {
