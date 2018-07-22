@@ -2,5 +2,13 @@
 <div class="row">
     {% if commit_form %}
     {{ wtf.quick_form(commit_form) }}
+    <!-- <p id="the_code" hidden >{{ wtf.form_field(commit_form.body) }}</p>
+    <h1 id="show"></h1>
+    <script>
+        function myFunction() {
+            var x = document.getElementById("the_code").innerHTML ;
+            document.getElementById("show").innerHTML=x;
+        }
+    </script> -->
     {% endif %}
 </div>
