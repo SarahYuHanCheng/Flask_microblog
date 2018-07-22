@@ -27,13 +27,14 @@ class StartGameForm(FlaskForm):
 
 class CreateGameForm(FlaskForm):
 	user_id = HiddenField('User id', default=current_user)
+	gamename = TextAreaField('gamename', validators=[DataRequired()])
 	descript = TextAreaField('descript', validators=[DataRequired()])
 	game_lib = TextAreaField('game_lib', validators=[DataRequired()])
 	example_code = TextAreaField('example code', validators=[DataRequired()])
 	create = SubmitField('Create Game')
 
 class CommentCodeForm(FlaskForm):
-	body = TextAreaField('Code', validators=[DataRequired(),Length(min=0, max=1024)])
+	body = TextAreaField('Comment', validators=[DataRequired(),Length(min=0, max=1024)])
 	user_id = HiddenField('User id', default=current_user)
 	code_id = HiddenField('Code id', default=current_code)
 	comment = SubmitField('Comment')

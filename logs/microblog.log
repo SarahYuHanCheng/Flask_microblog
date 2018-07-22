@@ -1,4 +1,4 @@
-2018-07-20 21:55:48,093 ERROR: Exception on /games/codes/01 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+2018-07-22 09:35:14,510 ERROR: Exception on /games/game_view/1 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
 Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
     response = self.full_dispatch_request()
@@ -14,10 +14,36 @@ Traceback (most recent call last):
     return self.view_functions[rule.endpoint](**req.view_args)
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
     return func(*args, **kwargs)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 55, in comment_code
-    form = CommentCodeForm() #current_log.id
-NameError: name 'CommentCodeForm' is not defined
-2018-07-20 21:56:36,656 ERROR: Exception on /games/codes/01 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 81, in game_view
+    commit_form=commit_form,comment_form=comment_form)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 134, in render_template
+    return _render(ctx.app.jinja_env.get_or_select_template(template_name_or_list),
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 869, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 830, in get_template
+    return self._load_template(name, self.make_globals(globals))
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 804, in _load_template
+    template = self.loader.load(self, name, globals)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/loaders.py", line 125, in load
+    code = environment.compile(source, name, filename)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 591, in compile
+    self.handle_exception(exc_info, source_hint=source_hint)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 780, in handle_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/_compat.py", line 37, in reraise
+    raise value.with_traceback(tb)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/games/game_view.html", line 1, in template
+    {% extends "base.html","commit_code.html" %}
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 497, in _parse
+    return Parser(self, source, name, encode_filename(filename)).parse()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/parser.py", line 901, in parse
+    result = nodes.Template(self.subparse(), lineno=1)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/parser.py", line 888, in subparse
+    self.stream.expect('block_end')
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/lexer.py", line 384, in expect
+    self.name, self.filename)
+jinja2.exceptions.TemplateSyntaxError: expected token 'end of statement block', got ','
+2018-07-22 09:41:36,487 ERROR: Exception on /games/game_view/1 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
 Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
     response = self.full_dispatch_request()
@@ -33,25 +59,32 @@ Traceback (most recent call last):
     return self.view_functions[rule.endpoint](**req.view_args)
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
     return func(*args, **kwargs)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 64, in comment_code
-    form.commit_msg.data = current_log#current_log.commit_msg
-AttributeError: 'CommentCodeForm' object has no attribute 'commit_msg'
-2018-07-20 21:56:51,273 ERROR: Exception on /games/codes/01 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
-Traceback (most recent call last):
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
-    response = self.full_dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 81, in game_view
+    commit_form=commit_form,comment_form=comment_form)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 134, in render_template
+    return _render(ctx.app.jinja_env.get_or_select_template(template_name_or_list),
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 869, in get_or_select_template
+    return self.get_template(template_name_or_list, parent, globals)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 830, in get_template
+    return self._load_template(name, self.make_globals(globals))
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 804, in _load_template
+    template = self.loader.load(self, name, globals)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/loaders.py", line 125, in load
+    code = environment.compile(source, name, filename)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 591, in compile
+    self.handle_exception(exc_info, source_hint=source_hint)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 780, in handle_exception
     reraise(exc_type, exc_value, tb)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
-    raise value
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
-    return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
-    return func(*args, **kwargs)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 64, in comment_code
-    form.commit_msg.data = current_log#current_log.commit_msg
-AttributeError: 'CommentCodeForm' object has no attribute 'commit_msg'
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/_compat.py", line 37, in reraise
+    raise value.with_traceback(tb)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/games/game_view.html", line 6, in template
+    <!--  <div class="row">
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 497, in _parse
+    return Parser(self, source, name, encode_filename(filename)).parse()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/parser.py", line 901, in parse
+    result = nodes.Template(self.subparse(), lineno=1)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/parser.py", line 888, in subparse
+    self.stream.expect('block_end')
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/lexer.py", line 384, in expect
+    self.name, self.filename)
+jinja2.exceptions.TemplateSyntaxError: expected token 'end of statement block', got 'row'
