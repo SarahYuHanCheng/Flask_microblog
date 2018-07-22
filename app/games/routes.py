@@ -10,7 +10,7 @@ from app.games import bp, current_game, current_log, current_code, current_comme
 current_game = '3333'
 print(current_game)
 # print(current_log)
-@bp.route('/create_game', methods=['GET', 'Comment'])
+@bp.route('/create_game', methods=['GET', 'POST'])
 @login_required
 def create_game():
 	form = CreateGameForm()
@@ -24,7 +24,7 @@ def create_game():
 		return redirect(url_for('games.start_game', gameId=current_game))
 	return render_template('games/create_game.html', title='Register', form=form)
 
-@bp.route('/start_game/<int:gameId>', methods=['GET','Comment'])
+@bp.route('/start_game/<int:gameId>', methods=['GET','POST'])
 @login_required
 def start_game(gameId):
 	form = StartGameForm()
@@ -49,12 +49,11 @@ def game_view(logId):
 	commit_form = CommitCodeForm() #current_log.id
 	comment_form = CommentCodeForm() #current_log.id
 	if request.method == 'GET':
-		commit_form.body.data = current_log#current_log.code
-		commit_form.commit_msg.data = current_log#current_log.commit_msg
-		code_id=666#current_log.code_id
-		current_code=code_id
+		commit_form.body.data = logId#current_log.code_id
+		commit_form.commit_msg.data = logId#current_log.commit_msg
+		current_code=logId#current_log.code_id
 		page = request.args.get('page', 1, type=int)
-		comments = Comment.query.order_by(Comment.timestamp.desc()).paginate(
+		comments = Comment.query.filter_by(code_id = current_code).order_by(Comment.timestamp.desc()).paginate(
         page, current_app.config['POSTS_PER_PAGE'], False)
 		
 		next_url = url_for('games.game_view', page=comments.next_num, logId=current_log) \
@@ -74,8 +73,7 @@ def game_view(logId):
 	 
 
 	elif comment_form.validate_on_submit():
-		code_id=666#current_log.code_id
-		current_code=code_id
+		current_code=logId
 		comment = Comment(code_id=current_code, body=comment_form.body.data)#comment_form.code_id.data
 		db.session.add(comment)
 		db.session.commit()
