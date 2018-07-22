@@ -1,11 +1,25 @@
-{% extends "base.html" %}
-{% import 'bootstrap/wtf.html' as wtf %}
-
-{% block app_content %}
-	<h1>Comment</h1>
-	<div class="row">
-		<div class="col-md-4">
-			{{ wtf.quick_form(form)}}
-		</div>
-	</div>
-{% endblock %}
+<div class="row">
+<h2>comment code </h2>
+    {% if comment_form %}
+    {{ wtf.quick_form(comment_form) }}
+    {% endif %}
+    {% if comments %}
+        {% for comment in comments %}
+            {% include '/games/_comments.html' %}
+        {% endfor %}
+        <nav aria-label="...">
+            <ul class="pager">
+                <li class="previous{% if not prev_url %} disabled{% endif %}">
+                    <a href="{{ prev_url or '#' }}">
+                        <span aria-hidden="true">&larr;</span> Newer comments
+                    </a>
+                </li>
+                <li class="next{% if not next_url %} disabled{% endif %}">
+                    <a href="{{ next_url or '#' }}">
+                         <span aria-hidden="true">&rarr;</span>Older comments
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    {% endif %}
+</div>

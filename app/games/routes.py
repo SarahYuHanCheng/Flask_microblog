@@ -55,11 +55,14 @@ def game_view(logId):
 		current_code=code_id
 		page = request.args.get('page', 1, type=int)
 		comments = Comment.query.order_by(Comment.timestamp.desc()).paginate(
-        page, current_app.config['POSTS_PER_PAGE'], False)	
+        page, current_app.config['POSTS_PER_PAGE'], False)
+		
 		next_url = url_for('games.game_view', page=comments.next_num, logId=current_log) \
 		if comments.has_next else None
 		prev_url = url_for('games.game_view',page = comments.prev_num, logId=current_log) \
 		if comments.has_prev else None 
+		return render_template('games/game_view.html',logId=current_log, title='Commit Code',
+                           commit_form=commit_form,comment_form=comment_form,comments=comments.items, next_url=next_url, prev_url=prev_url)
 
 	elif commit_form.validate_on_submit():
 		code = Code(log_id=logId, body=commit_form.body.data, commit_msg=commit_form.commit_msg.data)
