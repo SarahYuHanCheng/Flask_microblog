@@ -37,6 +37,14 @@ followers = db.Table('followers',
     db.Column('follower_id',db.Integer, db.ForeignKey('user.id')),
     db.Column('followed_id',db.Integer, db.ForeignKey('user.id'))
     )
+
+# ranks = db.Table('ranks', 
+#     db.Column('player_id',db.Integer, db.ForeignKey('user.id')),
+#     db.Column('game_id',db.Integer, db.ForeignKey('game.id'))
+#     )
+
+
+
 # lm = LoginManager(app)
 # lm.login_view = 'index'
 
@@ -56,8 +64,8 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
     #backref argument defines the name of a field that will be added to the objects of the "many" class that points back at the "one" object.
     #lazy argument defines how the database query for the relationship will be issued
     #mode of dynamic sets up the query to not run until specifically requested
-    about_me = db.Column(db.String(140))
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    about_me =db.deferred( db.Column(db.String(140)))
+    last_seen = db.deferred(db.Column(db.DateTime, default=datetime.utcnow))
     
     followed = db.relationship(
         'User', secondary=followers,
@@ -175,8 +183,14 @@ class Code(db.Model):
     body = db.Column(db.String(1024))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     commit_msg = db.Column(db.String(140))
+    game_id = db.Column(db.Integer, db.ForeignKey('game.id')) 
     log_id = db.Column(db.Integer, db.ForeignKey('log.id'))
+    comment = db.relationship('Comment', backref='code', lazy='dynamic')
     
+    def get_comments(self):
+        comment_list = Comment.query.filter_by(code_id = self.id).order_by(Comment.timestamp.desc())
+        return comment_list
+
     def __repr__(self):
         return '<Code {}>'.format(self.body)
 
@@ -188,9 +202,20 @@ class Log(db.Model):
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     winner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     score = db.Column(db.Integer,default='100200')
-
+    code_id_list = db.Column(db.Integer, db.ForeignKey('code.id'))
+    codes = db.relationship('Code', backref='to_log', lazy='dynamic')
+    
     def __repr__(self):
         return '<Log {}>'.format(self.game_id)
+    
+    def get_rank_list(self):
+        game_log = Log.query.filter_by(game_id = self.game_id)
+        # rank_list = 
+        return followed.union(own).order_by(Post.timestamp.desc())
+
+    def get_codes(self):
+        codes = Code.query.filter_by(log_id = self.id).order_by(Comment.timestamp.desc())
+        return comment_list
 
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -200,10 +225,26 @@ class Game(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     game_lib = db.Column(db.String(10240))
     example_code = db.Column(db.String(1024))
+    codes = db.relationship('Code', backref='game', lazy='dynamic')
     
     
     def __repr__(self):
         return '<Game {}>'.format(self.descript)
+
+    def followed_posts(self):
+        followed = Post.query.join(
+            followers, (followers.c.followed_id == Post.user_id)).filter(
+                followers.c.follower_id == self.id)
+        own = Post.query.filter_by(user_id = self.id)
+        return
+
+    def get_commited_codes(self):
+        #若code只有log_id沒有game_id 就要用 in(game_logs)
+        game_logs = Log.query.filter_by(game_id= self.id).order_by(Game.timestamp.desc())
+        
+        code_list = Code.query.filter_by(game_id = self.id).order_by(Game.timestamp.desc())
+        return code_list
+    
 
 class Comment(db.Model):
     """docstring for Comment"""
