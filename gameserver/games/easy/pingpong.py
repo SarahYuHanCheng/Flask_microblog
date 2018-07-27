@@ -7,7 +7,7 @@ from pygame import *
 
 pygame.init()
 fps = pygame.time.Clock()
-
+cnt =0
 
 WHITE = (255, 255, 255)
 ORANGE = (255,140,0)
@@ -58,10 +58,14 @@ def init():
     else:
         ball_init(False)
 
+def log():
+    print(ball_pos[0],ball_pos[1])
+    #save data websocket client
+
 
 def draw(canvas):
-    global paddle1_pos, paddle2_pos, ball_pos, ball_vel, l_score, r_score
-
+    global paddle1_pos, paddle2_pos, ball_pos, ball_vel, l_score, r_score, cnt
+    
     canvas.fill(BLACK)
     pygame.draw.line(canvas, WHITE, [WIDTH // 2, 0], [WIDTH // 2, HEIGHT], 1)
     pygame.draw.line(canvas, WHITE, [PAD_WIDTH, 0], [PAD_WIDTH, HEIGHT], 1)
@@ -83,10 +87,13 @@ def draw(canvas):
     elif paddle2_pos[1] == HEIGHT - HALF_PAD_HEIGHT and paddle2_vel < 0:
         paddle2_pos[1] += paddle2_vel
 
-
+    
     ball_pos[0] += int(ball_vel[0])
     ball_pos[1] += int(ball_vel[1])
-
+    cnt+=1
+    if cnt>5:
+        cnt=0
+        log()
 
     pygame.draw.circle(canvas, ORANGE, ball_pos, 20, 0)
     pygame.draw.polygon(canvas, GREEN, [[paddle1_pos[0] - HALF_PAD_WIDTH, paddle1_pos[1] - HALF_PAD_HEIGHT],
@@ -161,6 +168,7 @@ init()
 while True:
 
     draw(window)
+    
 
     for event in pygame.event.get():
 
