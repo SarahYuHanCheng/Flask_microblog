@@ -64,8 +64,9 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
     #backref argument defines the name of a field that will be added to the objects of the "many" class that points back at the "one" object.
     #lazy argument defines how the database query for the relationship will be issued
     #mode of dynamic sets up the query to not run until specifically requested
-    about_me =db.deferred( db.Column(db.String(140)))
-    last_seen = db.deferred(db.Column(db.DateTime, default=datetime.utcnow))
+    
+    # about_me =db.deferred( db.Column(db.String(140)))
+    # last_seen = db.deferred(db.Column(db.DateTime, default=datetime.utcnow))
     
     followed = db.relationship(
         'User', secondary=followers,
@@ -185,7 +186,7 @@ class Code(db.Model):
     commit_msg = db.Column(db.String(140))
     game_id = db.Column(db.Integer, db.ForeignKey('game.id')) 
     log_id = db.Column(db.Integer, db.ForeignKey('log.id'))
-    comment = db.relationship('Comment', backref='code', lazy='dynamic')
+    # comment = db.relationship('Comment', backref='code', lazy='dynamic')
     
     def get_comments(self):
         comment_list = Comment.query.filter_by(code_id = self.id).order_by(Comment.timestamp.desc())
@@ -203,7 +204,7 @@ class Log(db.Model):
     winner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     score = db.Column(db.Integer,default='100200')
     code_id_list = db.Column(db.Integer, db.ForeignKey('code.id'))
-    codes = db.relationship('Code', backref='to_log', lazy='dynamic')
+    # codes = db.relationship('Code', backref='to_log', lazy='dynamic')
     
     def __repr__(self):
         return '<Log {}>'.format(self.game_id)
@@ -225,7 +226,7 @@ class Game(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     game_lib = db.Column(db.String(10240))
     example_code = db.Column(db.String(1024))
-    codes = db.relationship('Code', backref='game', lazy='dynamic')
+    # codes = db.relationship('Code', backref='game', lazy='dynamic')
     
     
     def __repr__(self):
