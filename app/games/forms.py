@@ -49,3 +49,8 @@ class CommentCodeForm(FlaskForm):
 	# 		user = User.query.filter_by(username=self.username.data).first()
 	# 		if user is not None:
 	# 			raise ValidationError('Please use a different username.')
+class LoginForm(FlaskForm):
+    """Accepts a nickname and a room."""
+    name = StringField('Name', validators=[DataRequired()])
+    room = StringField('Room', validators=[DataRequired()])
+    submit = SubmitField('Enter Chatroom')

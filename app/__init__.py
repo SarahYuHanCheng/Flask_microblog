@@ -27,7 +27,7 @@ def create_app(config_class=Config):
 	app.config.from_object(config_class)
 	app.config['SECRET_KEY'] = 'secret!'
 	
-	socketio = SocketIO(app)
+	socketio.init_app(app)
 
 	db.init_app(app)
 	migrate.init_app(app,db)
@@ -88,5 +88,4 @@ def create_app(config_class=Config):
 
 		app.logger.addHandler(logging.INFO)
 		app.logger.info('Microblog startup')
-		socketio.run(app)
-	return socketio
+	return app
