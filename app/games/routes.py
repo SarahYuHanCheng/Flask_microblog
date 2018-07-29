@@ -1,14 +1,14 @@
-from flask import render_template, flash, redirect, url_for, request, current_app
+from flask import render_template, flash, redirect, url_for, request, current_app, session
 from app import db
-from app.games.forms import CreateGameForm, StartGameForm, CommitCodeForm,CommentCodeForm
+from app.games.forms import CreateGameForm, StartGameForm, CommitCodeForm,CommentCodeForm, LoginForm
 from flask_login import current_user, login_user, logout_user,login_required
 from app.models import User, Comment, Game, Log, Code, Comment
 from werkzeug.urls import url_parse
 from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
+from websocket import create_connection
 
 current_game = '3333'
-print(current_game)
 # print(current_log)
 @bp.route('/create_game', methods=['GET', 'POST'])
 @login_required
@@ -48,7 +48,13 @@ def start_game(gameId):
 def game_view(logId):
 	commit_form = CommitCodeForm() #current_log.id
 	comment_form = CommentCodeForm() #current_log.id
+	name = session.get('name', '')
+	room = session.get('room', '')
 	if request.method == 'GET':
+		
+		if name == '' or room == '':
+			return redirect(url_for('.index'))
+		
 		commit_form.body.data = logId#current_log.code_id
 		commit_form.commit_msg.data = logId#current_log.commit_msg
 		current_code=logId#current_log.code_id
@@ -56,19 +62,30 @@ def game_view(logId):
 		comments = Comment.query.filter_by(code_id = current_code).order_by(Comment.timestamp.desc()).paginate(
         page, current_app.config['POSTS_PER_PAGE'], False)
 		
-		next_url = url_for('games.game_view', page=comments.next_num, logId=current_log) \
-		if comments.has_next else None
-		prev_url = url_for('games.game_view',page = comments.prev_num, logId=current_log) \
-		if comments.has_prev else None 
+		# next_url = url_for('games.game_view', page=comments.next_num, logId=current_log) \
+		# if comments.has_next else None
+		# prev_url = url_for('games.game_view',page = comments.prev_num, logId=current_log) \
+		# if comments.has_prev else None 
 		return render_template('games/game_view.html',logId=current_log, title='Commit Code',
-                           commit_form=commit_form,comment_form=comment_form,comments=comments.items, next_url=next_url, prev_url=prev_url)
+                           commit_form=commit_form,comment_form=comment_form,comments=comments.items, name=name, room=room) #next_url=next_url, prev_url=prev_url
 
 	elif commit_form.validate_on_submit():
-		code = Code(log_id=logId, body=commit_form.body.data, commit_msg=commit_form.commit_msg.data)
+		code = Code(log_id=logId, body=commit_form.body.data, commit_msg=commit_form.commit_msg.data,game_id=logId)
 		db.session.add(code)
 		db.session.commit()
 		flash('Your code have been saved.')
 		current_code=code.id
+		ws = create_connection("ws://localhost:6005")
+		print("Sending 'Hello, World'...")
+		ws.send("Hello, World")
+		print("Sent")
+		print("Receiving...")
+		result =  ws.recv()
+		print("Received '%s'" % result)
+		ws.close()
+
+		#emit to game server
+		
 		# return redirect(url_for('games.game_view',logId='01')) #不重新整理頁面
 	 
 
@@ -79,7 +96,21 @@ def game_view(logId):
 		db.session.commit()
 		flash('Your code have been saved.')
 	return render_template('games/game_view.html',logId=current_log, title='Commit Code',
-                           commit_form=commit_form,comment_form=comment_form)
+                           commit_form=commit_form,comment_form=comment_form, name=name, room=room)
+
+
+@bp.route('/', methods=['GET', 'POST'])
+def index():
+    """Login form to enter a room."""
+    form = LoginForm()
+    if form.validate_on_submit():
+        session['name'] = form.name.data
+        session['room'] = form.room.data
+        return redirect(url_for('.game_view',logId=current_log))
+    elif request.method == 'GET':
+        form.name.data = session.get('name', '')
+        form.room.data = session.get('room', '')
+    return render_template('games/index.html', form=form)
 
 # @bp.route('/logs/<int:logId>',methods=['GET'])
 # def get_game_result(logId): # in game view, replace commit_code
