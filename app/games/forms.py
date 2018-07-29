@@ -6,7 +6,7 @@ from flask_login import current_user
 from app.games import current_game,current_log,current_code
 
 class CommitCodeForm(FlaskForm):
-	body = TextAreaField('Code', validators=[DataRequired(),Length(min=0, max=1024)])
+	body = TextAreaField('Code', validators=[DataRequired(),Length(min=0, max=10240)])
 	commit_msg = TextAreaField('Commit msg', validators=[DataRequired(),Length(min=0, max=140)])
 	commit = SubmitField('Commit')
 	log_id = HiddenField('Log id', default=current_log)
