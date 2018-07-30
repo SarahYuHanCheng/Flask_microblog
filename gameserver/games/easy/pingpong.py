@@ -68,12 +68,11 @@ def init():
 
 def log():
     print(ball_pos)
+    room='q1'
     #save data websocket client
     print("Sending")
     with SocketIO('localhost', 5000, LoggingNamespace) as socketIO:
-	# socketIO.emit('test_connect')
-        socketIO.emit('connect2',{'msg':ball_pos})
-
+        socketIO.emit('connectfromgame',{'msg':tuple([ball_pos,room,paddle1_pos,paddle2_pos])})
 
 def draw(canvas):
     global paddle1_pos, paddle2_pos, ball_pos, ball_vel, l_score, r_score, cnt

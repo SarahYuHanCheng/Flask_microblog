@@ -10,10 +10,10 @@ from .. import socketio
 # def test_message(message):
 #     emit('my response', {'data': message['data']}, broadcast=True)
 
-@socketio.on('connect2')
+@socketio.on('connectfromgame')
 def test_connect(message):
     print(message['msg'])
-    emit('my response', {'data': 'Connected'})
+    emit('gameobject', {'msg': message['msg']},room='q1')
 
 # @socketio.on('disconnect', namespace='/test')
 # def test_disconnect():

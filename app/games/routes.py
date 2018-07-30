@@ -77,7 +77,7 @@ def game_view(logId):
 		current_code=code.id
 		ws = create_connection("ws://localhost:6005")
 		print("Sending 'Hello, World'...")
-		ws.send(code.body)
+		ws.send({code.body,room})
 		print("Receiving...")
 		result =  ws.recv()
 		print("Received '%s'" % result)
