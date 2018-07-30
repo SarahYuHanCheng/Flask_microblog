@@ -10,15 +10,16 @@ from .. import socketio
 # def test_message(message):
 #     emit('my response', {'data': message['data']}, broadcast=True)
 
-# @socketio.on('connect', namespace='/test')
-# def test_connect():
-#     emit('my response', {'data': 'Connected'})
+@socketio.on('connect2')
+def test_connect(message):
+    print(message['msg'])
+    emit('my response', {'data': 'Connected'})
 
 # @socketio.on('disconnect', namespace='/test')
 # def test_disconnect():
 #     print('Client disconnected')
 
-@socketio.on('joined', namespace='/chat')
+@socketio.on('joined' )
 def joined(message):
     """Sent by clients when they enter a room.
     A status message is broadcast to all people in the room."""
@@ -27,7 +28,7 @@ def joined(message):
     emit('status', {'msg': session.get('name') + ' has entered the room.'}, room=room)
 
 
-@socketio.on('text', namespace='/chat')
+@socketio.on('text' )
 def text(message):
     """Sent by a client when the user entered a new message.
     The message is sent to all people in the room."""
@@ -35,7 +36,7 @@ def text(message):
     emit('message', {'msg': session.get('name') + ':' + message['msg']}, room=room)
 
 
-@socketio.on('left', namespace='/chat')
+@socketio.on('left' )
 def left(message):
     """Sent by clients when they leave a room.
     A status message is broadcast to all people in the room."""

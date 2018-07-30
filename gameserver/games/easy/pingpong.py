@@ -5,6 +5,8 @@ import pygame
 import sys
 from pygame import *
 
+from socketIO_client import SocketIO, LoggingNamespace
+
 pygame.init()
 fps = pygame.time.Clock()
 cnt =0
@@ -33,6 +35,12 @@ r_score = 0
 window = pygame.display.set_mode((WIDTH, HEIGHT), 0, 32)
 pygame.display.set_caption('Daylight Pong')
 
+# from websocket import create_connection
+# ws = create_connection("ws://localhost:5000")
+
+# print("Receiving...")
+# result =  ws.recv()
+# print("Received '%s'" % result)
 
 def ball_init(right):
     global ball_pos, ball_vel
@@ -59,8 +67,12 @@ def init():
         ball_init(False)
 
 def log():
-    print(ball_pos[0],ball_pos[1])
+    print(ball_pos)
     #save data websocket client
+    print("Sending")
+    with SocketIO('localhost', 5000, LoggingNamespace) as socketIO:
+	# socketIO.emit('test_connect')
+        socketIO.emit('connect2',{'msg':ball_pos})
 
 
 def draw(canvas):
@@ -179,6 +191,7 @@ while True:
         elif event.type == QUIT:
             pygame.quit()
             sys.exit()
+            ws.close()
 
     pygame.display.update()
-    fps.tick(60)
+    fps.tick(30)

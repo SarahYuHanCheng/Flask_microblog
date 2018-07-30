@@ -6,7 +6,7 @@ current_game=123
 current_log='001'
 current_code='010'
 current_comment='888'
-from app.games import routes
+from app.games import routes,events
 
 # class current_log(object):
 # 	"""docstring for current_log"""
