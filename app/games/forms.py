@@ -51,6 +51,6 @@ class CommentCodeForm(FlaskForm):
 	# 			raise ValidationError('Please use a different username.')
 class LoginForm(FlaskForm):
     """Accepts a nickname and a room."""
-    name = StringField('Name', validators=[DataRequired()])
-    room = StringField('Room', validators=[DataRequired()])
+    name = StringField('UserName', validators=[DataRequired()])
+    room = StringField('GameRoomId', validators=[DataRequired()])
     submit = SubmitField('Enter Chatroom')
