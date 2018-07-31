@@ -14,13 +14,14 @@ def message_received(client, server, message):
 	print("Client(%d) said: %s" % (client['id'], message))
 	data = json.loads(message)
 	print(data['room'])
-	# save_code(data['code'],data['logId'],data['room'])
-	execute_queue(data['logId'])
+	save_code(data['code'],data['logId'],data['room'])
+	
 	#取出msg中的logId當作檔名存成.py檔, 放進queue
 def save_code(code,logId,room):
 	f = open("%s%d.py"%(path,logId), "w") 
 	f.write(code)#上傳新的程式碼會直接取代掉
 	f.close()
+	execute_queue(logId)
 
 def execute_queue(logId):
 	#在call subprocess 來執行 logId.py
