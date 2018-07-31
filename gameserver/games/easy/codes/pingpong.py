@@ -10,7 +10,7 @@ from socketIO_client import SocketIO, LoggingNamespace
 pygame.init()
 fps = pygame.time.Clock()
 cnt =0
-
+print("exe game")
 WHITE = (255, 255, 255)
 ORANGE = (255,140,0)
 GREEN = (0, 255, 0)
