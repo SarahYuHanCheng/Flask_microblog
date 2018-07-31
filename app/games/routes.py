@@ -7,6 +7,7 @@ from werkzeug.urls import url_parse
 from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
 from websocket import create_connection
+import json
 
 current_game = '3333'
 # print(current_log)
@@ -77,7 +78,7 @@ def game_view(logId):
 		current_code=code.id
 		ws = create_connection("ws://localhost:6005")
 		print("Sending 'Hello, World'...")
-		ws.send({code.body,room})
+		ws.send(json.dumps({'code':code.body,'room':room,'logId':logId}))
 		print("Receiving...")
 		result =  ws.recv()
 		print("Received '%s'" % result)
