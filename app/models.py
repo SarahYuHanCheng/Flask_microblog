@@ -186,6 +186,7 @@ class Code(db.Model):
     commit_msg = db.Column(db.String(140))
     game_id = db.Column(db.Integer, db.ForeignKey('game.id')) 
     log_id = db.Column(db.Integer, db.ForeignKey('log.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     # comment = db.relationship('Comment', backref='code', lazy='dynamic')
     
     def get_comments(self):
