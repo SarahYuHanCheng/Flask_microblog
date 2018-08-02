@@ -28,18 +28,12 @@ def execute_queue(logId):
 
 	if logId :
 		proc1 = subprocess.Popen(
-			# ['python', '%spingpong.py'%path],
 			['python', '%s%d.py'%(path,logId)],
 			stdout=subprocess.PIPE)
-		try:
-			print("try")
-			out1, err1 = proc1.communicate(timeout=2)
-			print(out1)
-		except subprocess.TimeoutExpired:
-			proc1.terminate()
-			proc1.wait()
-			# proc2.terminate()
-			# proc2.wait()		
+
+		out1, err1 = proc1.communicate()
+		if(err1 is not None):
+			print(err1.decode('utf-8'))
 
 
 
