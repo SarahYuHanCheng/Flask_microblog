@@ -71,14 +71,14 @@ def game_view(logId):
                            commit_form=commit_form,comment_form=comment_form,comments=comments.items, name=name, room=room) #next_url=next_url, prev_url=prev_url
 
 	elif commit_form.validate_on_submit():
-		code = Code(log_id=logId, body=commit_form.body.data, commit_msg=commit_form.commit_msg.data,game_id=logId)
+		code = Code(log_id=logId, body=commit_form.body.data, commit_msg=commit_form.commit_msg.data,game_id=logId,user_id=commit_form.user_id.data)
 		db.session.add(code)
 		db.session.commit()
 		flash('Your code have been saved.')
 		current_code=code.id
 		ws = create_connection("ws://localhost:6005")
 		print("Sending 'Hello, World'...")
-		ws.send(json.dumps({'code':code.body,'room':room,'logId':logId}))
+		ws.send(json.dumps({'code':code.body,'room':room,'logId':logId,'userId':commit_form.user_id.data}))
 		print("Receiving...")
 		result =  ws.recv()
 		print("Received '%s'" % result)

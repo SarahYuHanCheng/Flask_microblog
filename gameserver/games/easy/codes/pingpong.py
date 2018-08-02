@@ -10,7 +10,6 @@ from socketIO_client import SocketIO, LoggingNamespace
 pygame.init()
 fps = pygame.time.Clock()
 cnt =0
-print("exe game")
 WHITE = (255, 255, 255)
 ORANGE = (255,140,0)
 GREEN = (0, 255, 0)
@@ -67,10 +66,8 @@ def init():
         ball_init(False)
 
 def log():
-    print(ball_pos)
-    room='q1'
+    room=sys.argv[1]
     #save data websocket client
-    print("Sending")
     with SocketIO('localhost', 5000, LoggingNamespace) as socketIO:
         socketIO.emit('connectfromgame',{'msg':tuple([ball_pos,room,paddle1_pos,paddle2_pos])})
 

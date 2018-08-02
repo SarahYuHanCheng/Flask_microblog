@@ -10,7 +10,8 @@ class CommitCodeForm(FlaskForm):
 	commit_msg = TextAreaField('Commit msg', validators=[DataRequired(),Length(min=0, max=140)])
 	commit = SubmitField('Commit')
 	log_id = HiddenField('Log id', default=current_log)
-
+	userId =current_user
+	user_id = HiddenField('User id', default=userId)
 	# def __init__(self, original_log, *args, **kwargs):
 	# 	super(CommitCodeForm, self).__init__(*args, **kwargs)
 	# 	self.original_log = original_log
