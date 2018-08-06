@@ -4,15 +4,20 @@
 2. `source ./venv/bin/activate`
 3. `pip install -r requirements.txt`
 4. `export FLASK_APP=microblog.py`
-5. `flask run` and Running on http://127.0.0.1:5000/
+5. delete app.db and migration folder
+6. `flask db init`
+7. `flask db migrate`
+8. `flask db upgrade`
+9. `flask run` and Running on http://127.0.0.1:5000/
 
 
 ### game server
-1. `virtualenv venv`
-2. `source ./venv/bin/activate`
-3. `pip install -r requirements.txt`
-4. `cd gameserver`
-5. `python server_test.py`and Running on http://127.0.0.1:6005/
+1. `cd gameserver`
+2. `virtualenv venv`
+3. `source ./venv/bin/activate`
+4. `pip install -r requirements.txt`
+5. delete server_test.py line66 `, loglevel=logging.INFO` 
+6. `python server_test.py`and Running on http://127.0.0.1:6005/
 
 
 
