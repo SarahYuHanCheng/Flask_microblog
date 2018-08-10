@@ -47,57 +47,32 @@ def start_game(gameId):
 @bp.route('/game_view/<int:logId>', methods=['GET','POST'])
 @login_required
 def game_view(logId):
-	commit_form = CommitCodeForm() #current_log.id
-	comment_form = CommentCodeForm() #current_log.id
+
+	return render_template('games/game_view.html')
+
+@bp.route('/commit_code', methods=['GET','POST'])
+@login_required
+def commit_code():
 	name = session.get('name', '')
 	room = session.get('room', '')
-	if request.method == 'GET':
-		
-		if name == '' or room == '':
+	if name == '' or room == '':
 			return redirect(url_for('.index'))
-		
-		commit_form.body.data = logId#current_log.code_id
-		commit_form.commit_msg.data = logId#current_log.commit_msg
-		current_code=logId#current_log.code_id
-		page = request.args.get('page', 1, type=int)
-		comments = Comment.query.filter_by(code_id = current_code).order_by(Comment.timestamp.desc()).paginate(
-        page, current_app.config['POSTS_PER_PAGE'], False)
-		
-		# next_url = url_for('games.game_view', page=comments.next_num, logId=current_log) \
-		# if comments.has_next else None
-		# prev_url = url_for('games.game_view',page = comments.prev_num, logId=current_log) \
-		# if comments.has_prev else None 
-		return render_template('games/game_view.html',logId=current_log, title='Commit Code',
-                           commit_form=commit_form,comment_form=comment_form,comments=comments.items, name=name, room=room) #next_url=next_url, prev_url=prev_url
+	editor_content = request.args.get('editor_content', 0, type=str)
+	print(json.dumps({'selected post': str(editor_content)}))
+	code = Code(log_id='1234', body=editor_content, commit_msg="fake commit_msg.data",game_id='12',user_id='12345')
+	db.session.add(code)
+	db.session.commit()
+	flash('Your code have been saved.')
+	current_code=code.id
+	ws = create_connection("ws://localhost:6005")
+	print("Sending 'Hello, World'...")
+	ws.send(json.dumps({'code':code.body,'room':room,'logId':current_log,'userId':'12345'}))
+	print("Receiving...")
+	result =  ws.recv()
+	print("Received '%s'" % result)
+	ws.close()
 
-	elif commit_form.validate_on_submit():
-		code = Code(log_id=logId, body=commit_form.body.data, commit_msg=commit_form.commit_msg.data,game_id=logId,user_id=commit_form.user_id.data)
-		db.session.add(code)
-		db.session.commit()
-		flash('Your code have been saved.')
-		current_code=code.id
-		ws = create_connection("ws://localhost:6005")
-		print("Sending 'Hello, World'...")
-		ws.send(json.dumps({'code':code.body,'room':room,'logId':logId,'userId':commit_form.user_id.data}))
-		print("Receiving...")
-		result =  ws.recv()
-		print("Received '%s'" % result)
-		ws.close()
-
-		#emit to game server
-		
-		# return redirect(url_for('games.game_view',logId='01')) #不重新整理頁面
-	 
-
-	elif comment_form.validate_on_submit():
-		current_code=logId
-		comment = Comment(code_id=current_code, body=comment_form.body.data)#comment_form.code_id.data
-		db.session.add(comment)
-		db.session.commit()
-		flash('Your code have been saved.')
-	return render_template('games/game_view.html',logId=current_log, title='Commit Code',
-                           commit_form=commit_form,comment_form=comment_form, name=name, room=room)
-
+	return redirect(url_for('games.game_view',logId=current_log))
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
