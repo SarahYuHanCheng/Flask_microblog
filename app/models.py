@@ -6,7 +6,7 @@ from time import time
 import jwt
 from flask import current_app, url_for
 import base64
-import os
+import os,json
 from app import db, login
 
 class PaginatedAPIMixin(object):
@@ -230,8 +230,13 @@ class Game(db.Model):
     # codes = db.relationship('Code', backref='game', lazy='dynamic')
     
     
-    def __repr__(self):
-        return '<Game {}>'.format(self.descript)
+    # def __repr__(self):
+    #     for x in dir(self):
+    #         if not x.startswith(("_","metadata","query")):
+    #             # # s+=str(x)+':'+self[x]
+    #             # print(x)
+    #             pass
+    #     return json.dumps(self)
 
     def followed_posts(self):
         followed = Post.query.join(
