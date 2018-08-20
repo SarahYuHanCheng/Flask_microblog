@@ -1,39 +1,59 @@
-from p76051080 import p1
-import multiprocessing,time
+# -----------------------------------------
+# gamemain
+# socketio server communicate to P1,P2
+# socketio client communicate to webserver
+# -----------------------------------------
+import socketio
+import eventlet
+import pingpong
+from flask import Flask, render_template
 
-global numbers
-import pygame, sys, time
-#print(sys.argv[1])
+sio = socketio.Server()
+app = Flask(__name__)
+
+from socketIO_client import SocketIO, LoggingNamespace
+
+ball=[5,6]
+paddle1=[3]
+paddle2=[8]
+
+@sio.on('connect')
+def connect(sid, environ):
+    print("connect ", sid)
+
+@sio.on('P1')
+def print_message(sid, message):
+    print("P1 Socket ID: " , sid)
+    game(message)
+
+@sio.on('P2')
+def print_message(sid, message):
+    print("P2 Socket ID: " , sid)
+    game(message)
+
+@sio.on('disconnect')#, namespace='/chat'
+def disconnect(sid):
+    print('disconnect ', sid)
+
 def __init__():
-    numbers = [1,2,3]
-    result = multiprocessing.Array('i',3)
-    mp1=multiprocessing.Process(target=p1, args=(numbers, result))
-    mp1.start()
-    mp1.join()
-    game(result)
+    pass
+
+def score():
+    pass
 
 def game(result):
-    print("call game")
-    background_colour = (255,255,255)
-    (width, height) = (300, 200)
-    BLUE = (0,0,225)
-    screen = pygame.display.set_mode((width, height))
-    pygame.display.set_caption('Tutorial 1')
-    screen.fill(background_colour)
-    pygame.draw.circle(screen, BLUE, (50,50), 20)
+    print("call game:",result)
+    send_to_Players()
 
-    # pygame.display.flip()
-    running = True
-    for idx, n in enumerate(result):
-                result[idx] = n+1
-                print(result[idx])
-    # while running:
-    #     for idx, n in enumerate(result):
-    #             result[idx] = n+1
-    #     print('in main:',result)
-    #     for event in pygame.event.get():
-    #         if event.type == pygame.QUIT:
-    #             running = False
-    #         time.sleep(1)
+def send_to_Players():
+    sio.emit('gameinfo',{'msg':tuple([ball,paddle1,paddle2])})
 
-__init__()
+def send_to_webserver():
+    with SocketIO('localhost', 5000, LoggingNamespace) as socketIO:
+        socketIO.emit('connectfromgame',{'msg':tuple([ball_pos,room,paddle1_pos,paddle2_pos])})
+
+
+
+if __name__ == '__main__':
+     app = socketio.Middleware(sio, app)
+     eventlet.wsgi.server(eventlet.listen(('', 8000)), app)
