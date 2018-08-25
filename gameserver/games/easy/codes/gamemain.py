@@ -56,7 +56,10 @@ def on_P1(sid, p1_vel):
     global paddle1_vel
     if start!=0:
         paddle1_vel=p1_vel
-        game('P1 '+sid)
+        try:
+            game('P1 '+sid)
+        except:
+            return
     else:
         global ball
         print('ball ',ball)
@@ -67,7 +70,10 @@ def on_P2(sid, p2_vel):
     global paddle2_vel
     if start!=0:
         paddle2_vel=p2_vel
-        game('P2 '+sid)
+        try:
+            game('P2 '+sid)
+        except:
+            return
     else:
         global ball
         print('ball ',ball)
@@ -105,7 +111,10 @@ def score():
 
 def game(who):
     print('who ',who)
-    play()
+    try:
+        play()
+    except:
+        return
     send_to_Players('gameinfo')
 
 def send_to_Players(instr):
@@ -186,7 +195,8 @@ def play():
                 start=0
                 send_to_Players('endgame')
     except(RuntimeError, TypeError, NameError):
-        raise SystemExit
+        # raise SystemExit
+        return
 
 __init__()
 app = socketio.Middleware(sio, app)
