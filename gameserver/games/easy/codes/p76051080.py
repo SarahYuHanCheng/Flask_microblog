@@ -11,12 +11,19 @@ paddle1_pos=[0] # paddle only Y axis
 move_unit=5
 paddle_vel=0
 
+
+def on_wait(msg):
+	print("wait for other player")
+def on_endgame(msg):
+	print("end ball ",msg['msg'])
+	raise SystemExit
+
 def on_gameinfo(message):
-	print("on_gameinfo")
 	tuple_msg=message['msg']
+	print(tuple_msg[0])
 	ball_pos.append(tuple_msg[0])
 	paddle1_pos.append(tuple_msg[1])
-	print(ball_pos)
+	
 	run()
 	communicate()
 
@@ -26,10 +33,10 @@ def run():
 	if (ball_pos[-1][0]-ball_pos[-2][0]) <0: 
 		print("ball moves left")
 		if (ball_pos[-1][1]-ball_pos[-2][1]) >0:
-			print("ball moves down")
+			# print("ball moves down")
 			paddle_vel=move_unit
 		elif (ball_pos[-1][1]-ball_pos[-2][1])<0:
-			print("ball moves up")
+			# print("ball moves up")
 			paddle_vel=-move_unit
 	else: 
 		print("ball moves right, no need to move paddle1")
@@ -43,6 +50,8 @@ def score():# CPU, MEM Utility
 	pass
 
 socketIO=SocketIO('localhost', 8000, LoggingNamespace)
+socketIO.on('wait',on_wait)
 socketIO.on('gameinfo',on_gameinfo)
-socketIO.emit('P1',paddle_vel)
+socketIO.on('endgame',on_endgame)
+socketIO.emit('P1_in')
 socketIO.wait(seconds=60)
