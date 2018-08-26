@@ -6,9 +6,8 @@
 import random
 import socketio
 import eventlet
-import sys
+import sys,time
 from flask import Flask, render_template
-import atexit
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -29,59 +28,56 @@ paddle1_vel = 0
 paddle2_vel = 0
 l_score = 0
 r_score = 0
-start=0
+barrier=2
+cnt=0
 
 @sio.on('connect')
 def connect(sid, environ):
     print("connect ", sid)
 @sio.on('P1_in')
 def on_P1_in(sid):
-    global start
-    if start<1:
-        start+=1
+    global barrier
+    barrier-=1
+    if barrier>0:
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
+        print(time.clock())
 @sio.on('P2_in')
 def on_P1_in(sid):
-    global start
-    if start<1:
-        start+=1
+    global barrier
+    barrier-=1    
+    if barrier>0:
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
+        print('%f'%time.clock())
 
 @sio.on('P1')
-def on_P1(sid, p1_vel):
-    global paddle1_vel
-    if start!=0:
-        paddle1_vel=p1_vel
-        try:
-            game('P1 '+sid)
-        except:
-            return
-    else:
-        global ball
-        print('ball ',ball)
-        sys.exit()
+def on_P1(sid, msg):
+    global paddle1_vel,barrier
+    print('P1 cnt ',msg['cnt'])
+    paddle1_vel=msg['paddle_vel']
+    barrier-=1
+    if barrier==0:
+        game()
+        
+
 
 @sio.on('P2')
-def on_P2(sid, p2_vel):
-    global paddle2_vel
-    if start!=0:
-        paddle2_vel=p2_vel
-        try:
-            game('P2 '+sid)
-        except:
-            return
-    else:
-        global ball
-        print('ball ',ball)
-        sys.exit()
+def on_P2(sid, msg):
+    global paddle2_vel,barrier
+    print('P2 cnt ',msg['cnt'])
+    paddle2_vel=msg['paddle_vel']
+    barrier-=1
+    if barrier==0:
+        game()
+
 
 @sio.on('disconnect')#, namespace='/chat'
 def disconnect(sid):
     print('disconnect ', sid)
+    return
 
 def ball_init(right):
     global ball, ball_vel
@@ -109,22 +105,26 @@ def __init__():
 def score():
     pass
 
-def game(who):
-    print('who ',who)
+def game():
     try:
         play()
     except:
         return
     send_to_Players('gameinfo')
 
+
 def send_to_Players(instr):
-    
-    if (instr == 'gameinfo') and start!=0:
-        msg={'msg':tuple([ball,paddle1[1],paddle2[1]])}
+    global serversock,cnt,barrier
+    if (instr == 'gameinfo') and barrier==0:
+        cnt+=1
+        msg={'msg':tuple([ball,paddle1[1],paddle2[1],cnt])}
         sio.emit(instr,msg)
+        print('emit cnt ',cnt)
+        barrier=2
     elif instr == 'endgame':
         msg={'msg':ball}
-        sio.emit(instr,msg) 
+        sio.emit(instr,msg)
+        print('endgame %f'%time.clock()) 
 
 def send_to_webserver():
     with SocketIO('localhost', 5000, LoggingNamespace) as socketIO:
@@ -135,7 +135,8 @@ def send_to_webserver():
 def play():
     try:
         global paddle1, paddle2,paddle1_vel,paddle2_vel, ball, ball_vel, l_score, r_score, cnt
-        global start
+        global barrier
+        print('ball_play: ',ball)
         print('paddle:(%d,%d)'%(paddle1[1],paddle2[1]))
         if paddle1[1] > HALF_PAD_HEIGHT and paddle1[1] < HEIGHT - HALF_PAD_HEIGHT:
             paddle1[1] += paddle1_vel
@@ -175,9 +176,9 @@ def play():
             if r_score < 1:
                 ball_init(True)
             else:
-                start=0
+                barrier=1
                 send_to_Players('endgame')
-            
+                print('ball ',ball)
 
         if int(ball[0]) >= WIDTH + 1 - BALL_RADIUS - PAD_WIDTH and int(ball[1]) in range(
                 paddle2[1] - HALF_PAD_HEIGHT, paddle2[1] + HALF_PAD_HEIGHT, 1):
@@ -192,17 +193,28 @@ def play():
                 ball_init(False)
                 
             else:
-                start=0
+                barrier=1
                 send_to_Players('endgame')
+                print('ball ',ball)
+
     except(RuntimeError, TypeError, NameError):
         # raise SystemExit
+        print('play except')
         return
 
-__init__()
-app = socketio.Middleware(sio, app)
-serversock=eventlet.wsgi.server(eventlet.listen(('', 8000)), app)
-
-# if __name__ == '__main__':
-#     __init__()
+if __name__ == '__main__':
+    __init__()
+    app = socketio.Middleware(sio, app)
+    serversock=eventlet.wsgi.server(eventlet.listen(('', 8000)), app) 
+    
+    # global app,sio
+    # try:
+    #     while True:
+    #         print('while')
+    #         if barrier==0:
+    #             game()
+           
+    # except Exception as e:
+    #     raise e
 
      
