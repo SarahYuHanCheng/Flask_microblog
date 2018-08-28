@@ -3,7 +3,7 @@
 # socketio server communicate to P1,P2
 # socketio client communicate to webserver
 # -----------------------------------------
-import random
+import random, math
 import socketio
 import eventlet
 import sys,time
@@ -15,11 +15,11 @@ app = Flask(__name__)
 
 from socketIO_client import SocketIO, LoggingNamespace
 
-WIDTH = 600
+WIDTH = 800
 HEIGHT = 400
 BALL_RADIUS = 20
 PAD_WIDTH = 8
-PAD_HEIGHT = 80
+PAD_HEIGHT = math.ceil(HEIGHT/3)
 HALF_PAD_WIDTH = PAD_WIDTH // 2
 HALF_PAD_HEIGHT = PAD_HEIGHT // 2
 ball = [0, 0]
@@ -56,21 +56,22 @@ def on_P1_in(sid):
 @sio.on('P1')
 def on_P1(sid, msg):
     global paddle1_vel,barrier
-    print('P1 cnt ',msg['cnt'])
+    print('cnt ',msg['cnt'])
     paddle1_vel=msg['paddle_vel']
+    print('P1 ',paddle1_vel)
     barrier-=1
     if barrier==0:
+        send_to_webserver()
         game()
-        
-
 
 @sio.on('P2')
 def on_P2(sid, msg):
     global paddle2_vel,barrier
-    print('P2 cnt ',msg['cnt'])
     paddle2_vel=msg['paddle_vel']
+    print('P2 ',paddle2_vel)
     barrier-=1
     if barrier==0:
+        send_to_webserver()
         game()
 
 
@@ -93,6 +94,8 @@ def ball_init(right):
 def __init__():
     global paddle1, paddle2, paddle1_vel, paddle2_vel, l_score, r_score  # these are floats
     global score1, score2  # these are ints
+    print('PAD_HEIGHT ',PAD_HEIGHT)
+    print('HALF_PAD_HEIGHT ',HALF_PAD_HEIGHT)
     paddle1 = [HALF_PAD_WIDTH - 1, HEIGHT // 2]
     paddle2 = [WIDTH + 1 - HALF_PAD_WIDTH, HEIGHT //2]
     l_score = 0
@@ -127,8 +130,9 @@ def send_to_Players(instr):
         print('endgame %f'%time.clock()) 
 
 def send_to_webserver():
+    global ball,paddle1,paddle2
     with SocketIO('localhost', 5000, LoggingNamespace) as socketIO:
-        socketIO.emit('connectfromgame',{'msg':tuple([ball,room,paddle1,paddle2])})
+        socketIO.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2])})
 
     
 
@@ -137,21 +141,36 @@ def play():
         global paddle1, paddle2,paddle1_vel,paddle2_vel, ball, ball_vel, l_score, r_score, cnt
         global barrier
         print('ball_play: ',ball)
-        print('paddle:(%d,%d)'%(paddle1[1],paddle2[1]))
+        
         if paddle1[1] > HALF_PAD_HEIGHT and paddle1[1] < HEIGHT - HALF_PAD_HEIGHT:
             paddle1[1] += paddle1_vel
-        elif paddle1[1] == HALF_PAD_HEIGHT and paddle1_vel > 0:
+            print('p1 normal')
+        elif paddle1[1] <= HALF_PAD_HEIGHT and paddle1_vel > 0:
+            paddle1[1] = HALF_PAD_HEIGHT
             paddle1[1] += paddle1_vel
-        elif paddle1[1] == HEIGHT - HALF_PAD_HEIGHT and paddle1_vel < 0:
+            print('p1 top')
+        elif paddle1[1] >= HEIGHT - HALF_PAD_HEIGHT and paddle1_vel < 0:
+            paddle1[1] = HEIGHT - HALF_PAD_HEIGHT
             paddle1[1] += paddle1_vel
+            print('p1 bottom')
+        else:
+            print('p2 else')
 
         if paddle2[1] > HALF_PAD_HEIGHT and paddle2[1] < HEIGHT - HALF_PAD_HEIGHT:
             paddle2[1] += paddle2_vel
-        elif paddle2[1] == HALF_PAD_HEIGHT and paddle2_vel > 0:
+            print('p2 normal')
+        elif paddle2[1] <= HALF_PAD_HEIGHT and paddle2_vel > 0:
+            paddle1[1] = HALF_PAD_HEIGHT
             paddle2[1] += paddle2_vel
-        elif paddle2[1] == HEIGHT - HALF_PAD_HEIGHT and paddle2_vel < 0:
+            print('p2 top')
+        elif paddle2[1] >= HEIGHT - HALF_PAD_HEIGHT and paddle2_vel < 0:
+            paddle1[1] =HEIGHT- HALF_PAD_HEIGHT
             paddle2[1] += paddle2_vel
+            print('p2 bottom')
+        else:
+            print('p2 else')
 
+        print('paddle:(%d,%d)'%(paddle1[1],paddle2[1]))
 
         ball[0] += int(ball_vel[0])
         ball[1] += int(ball_vel[1])
@@ -206,15 +225,5 @@ if __name__ == '__main__':
     __init__()
     app = socketio.Middleware(sio, app)
     serversock=eventlet.wsgi.server(eventlet.listen(('', 8000)), app) 
-    
-    # global app,sio
-    # try:
-    #     while True:
-    #         print('while')
-    #         if barrier==0:
-    #             game()
-           
-    # except Exception as e:
-    #     raise e
 
      
