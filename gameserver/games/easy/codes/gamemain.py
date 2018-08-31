@@ -31,35 +31,41 @@ l_score = 0
 r_score = 0
 barrier=2
 cnt=0
+p1_timeout=0.0001
+p2_timeout=0.0001
+start=0
 
 @sio.on('connect')
 def connect(sid, environ):
     print("connect ", sid)
 @sio.on('P1_in')
 def on_P1_in(sid):
-    global barrier
+    global barrier,start
     barrier-=1
     if barrier>0:
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
-        print(time.clock())
+        print('%f'%time.clock())
+        start=1
 @sio.on('P2_in')
 def on_P1_in(sid):
-    global barrier
+    global barrier,start
     barrier-=1    
     if barrier>0:
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
         print('%f'%time.clock())
+        start=1
 
 @sio.on('P1')
 def on_P1(sid, msg):
-    global paddle1_vel,barrier
+    global paddle1_vel,barrier,p1_timeout
     print('cnt ',msg['cnt'])
     paddle1_vel=msg['paddle_vel']
     print('P1 ',paddle1_vel)
+    p1_timeout=time.clock()
     barrier-=1
     if barrier==0:
         # send_to_webserver()
@@ -67,9 +73,10 @@ def on_P1(sid, msg):
 
 @sio.on('P2')
 def on_P2(sid, msg):
-    global paddle2_vel,barrier
+    global paddle2_vel,barrier,p2_timeout
     paddle2_vel=msg['paddle_vel']
     print('P2 ',paddle2_vel)
+    p2_timeout=time.clock()
     barrier-=1
     if barrier==0:
         # send_to_webserver()
@@ -114,7 +121,9 @@ def game():
         play()
     except:
         return
+    print('send_to_Players')
     send_to_Players('gameinfo')
+
 
 
 def send_to_Players(instr):
@@ -229,10 +238,51 @@ def serve_app(_sio, _app):
     serversock=eventlet.wsgi.server(eventlet.listen(('', 8000)), app) 
 
 def action() :
+    global p1_timeout, p2_timeout,barrier, paddle1_vel, paddle2_vel, start
     while True:
-        time.sleep(0.1)
-        print('action ! -> time : {:.1f}s'.format(time.time()-StartTime))
+        if start==1:
+            time.sleep(0.01)
+            # print('action ! -> time : {:.1f}s'.format(time.time()-StartTime))
+            print('p1_timeout ',p1_timeout)
+            print('p2_timeout ',p2_timeout)
+            print('time.clock()-p1_timeout ',time.clock()-p1_timeout)
+            print('time.clock()-p2_timeout ',time.clock()-p2_timeout)
+            
+            if (time.clock()-p1_timeout)>0.025:
+                print('p1_timeout_')
+                
+                if p1_timeout<=p2_timeout:
+                    # print('p1_timeout')
+                    paddle1_vel=0
+                    barrier=0
+                    p1_timeout=time.clock()
+                    p2_timeout=time.clock()
+                    game()
+                elif p1_timeout>p2_timeout:
+                    # print('p2_timeout')
+                    paddle2_vel=0
+                    barrier=0
+                    p1_timeout=time.clock()
+                    p2_timeout=time.clock()
+                    game()
+            elif (time.clock()-p2_timeout)>0.025:
+                print('p2_timeout_')
+                if p1_timeout<=p2_timeout:
+                    # print('p1_timeout')
+                    paddle1_vel=0
+                    barrier=2
+                    p1_timeout=time.clock()
+                    p2_timeout=time.clock()
+                    game()
+                elif p1_timeout>p2_timeout:
+                    # print('p2_timeout')
+                    paddle2_vel=0
+                    barrier=2
+                    p1_timeout=time.clock()
+                    p2_timeout=time.clock()
+                    game()
 
+        
 if __name__ == '__main__':
     __init__()
     wst = threading.Thread(target=serve_app, args=(sio,app))
@@ -259,10 +309,10 @@ timeout.start()
 #     def cancel(self) :
 #         self.stopEvent.set()
 
-# # start action every 0.6s
-# inter=setInterval(0.02,action)
+# # # start action every 0.6s
+# inter=setInterval(0.01,action)
 # print('just after setInterval -> time : {:.1f}s'.format(time.time()-StartTime))
 
-# # will stop interval in 5s
+# # # will stop interval in 5s
 # t=threading.Timer(25,inter.cancel)
 # t.start()
