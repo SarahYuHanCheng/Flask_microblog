@@ -10,7 +10,7 @@ ball_pos=[[0,0]]
 paddle1_pos=[0] # paddle only Y axis
 move_unit=5
 paddle_vel=0
-
+count=0
 
 def on_wait(msg):
 	print("wait for other player")
@@ -32,6 +32,11 @@ def on_gameinfo(message):
 
 
 def run():
+	global count
+	count+=1
+	if count>10:
+		time.sleep(0.03)
+		count=0
 	global paddle_vel
 	if (ball_pos[-1][0]-ball_pos[-2][0]) <0: 
 		print("ball moves left")
