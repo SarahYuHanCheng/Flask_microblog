@@ -1,7 +1,7 @@
 # -----------------------------------------
 # gamemain
-# socketio server communicate to P1,P2
-# socketio client communicate to webserver
+# socketio server communicate with P1,P2
+# socketio client communicate with webserver
 # -----------------------------------------
 import random, math
 import socketio
@@ -35,9 +35,12 @@ p1_timeout=0.0001
 p2_timeout=0.0001
 start=0
 
+# eventlet.monkey_patch()
+
 @sio.on('connect')
 def connect(sid, environ):
     print("connect ", sid)
+
 @sio.on('P1_in')
 def on_P1_in(sid):
     global barrier,start
@@ -48,6 +51,8 @@ def on_P1_in(sid):
         send_to_Players('gameinfo')
         print('%f'%time.clock())
         start=1
+        eventlet.spawn(action)
+
 @sio.on('P2_in')
 def on_P1_in(sid):
     global barrier,start
@@ -58,6 +63,7 @@ def on_P1_in(sid):
         send_to_Players('gameinfo')
         print('%f'%time.clock())
         start=1
+        eventlet.spawn(action)
 
 @sio.on('P1')
 def on_P1(sid, msg):
@@ -97,8 +103,8 @@ def ball_init(right):
     if right == False:
         print("init move left")
         horz = - horz
-
     ball_vel = [horz, -vert]
+
 def __init__():
     global paddle1, paddle2, paddle1_vel, paddle2_vel, l_score, r_score  # these are floats
     global score1, score2  # these are ints
@@ -121,12 +127,10 @@ def game():
         play()
     except:
         return
-    print('send_to_Players')
     send_to_Players('gameinfo')
 
-
-
 def send_to_Players(instr):
+    print('send_to_Players')
     global serversock,cnt,barrier
     if (instr == 'gameinfo') and barrier==0:
         cnt+=1
@@ -239,80 +243,83 @@ def serve_app(_sio, _app):
 
 def action() :
     global p1_timeout, p2_timeout,barrier, paddle1_vel, paddle2_vel, start
-    while True:
-        if start==1:
-            time.sleep(0.01)
-            # print('action ! -> time : {:.1f}s'.format(time.time()-StartTime))
-            print('p1_timeout ',p1_timeout)
-            print('p2_timeout ',p2_timeout)
-            print('time.clock()-p1_timeout ',time.clock()-p1_timeout)
-            print('time.clock()-p2_timeout ',time.clock()-p2_timeout)
+    # while True:
+    if start==1:
+        # time.sleep(0.01)
+        # print('action ! -> time : {:.1f}s'.format(time.time()-StartTime))
+        print('p1_timeout ',p1_timeout)
+        print('p2_timeout ',p2_timeout)
+        print('time.clock()-p1_timeout ',time.clock()-p1_timeout)
+        print('time.clock()-p2_timeout ',time.clock()-p2_timeout)
+        
+        if (time.clock()-p1_timeout)>0.025:
+            print('p1_timeout_')
             
-            if (time.clock()-p1_timeout)>0.025:
-                print('p1_timeout_')
-                
-                if p1_timeout<=p2_timeout:
-                    # print('p1_timeout')
-                    paddle1_vel=0
-                    barrier=0
-                    p1_timeout=time.clock()
-                    p2_timeout=time.clock()
-                    game()
-                elif p1_timeout>p2_timeout:
-                    # print('p2_timeout')
-                    paddle2_vel=0
-                    barrier=0
-                    p1_timeout=time.clock()
-                    p2_timeout=time.clock()
-                    game()
-            elif (time.clock()-p2_timeout)>0.025:
-                print('p2_timeout_')
-                if p1_timeout<=p2_timeout:
-                    # print('p1_timeout')
-                    paddle1_vel=0
-                    barrier=2
-                    p1_timeout=time.clock()
-                    p2_timeout=time.clock()
-                    game()
-                elif p1_timeout>p2_timeout:
-                    # print('p2_timeout')
-                    paddle2_vel=0
-                    barrier=2
-                    p1_timeout=time.clock()
-                    p2_timeout=time.clock()
-                    game()
+            if p1_timeout<=p2_timeout:
+                # print('p1_timeout')
+                paddle1_vel=0
+                barrier=0
+                p1_timeout=time.clock()
+                p2_timeout=time.clock()
+                game()
+            elif p1_timeout>p2_timeout:
+                # print('p2_timeout')
+                paddle2_vel=0
+                barrier=0
+                p1_timeout=time.clock()
+                p2_timeout=time.clock()
+                game()
+        elif (time.clock()-p2_timeout)>0.025:
+            print('p2_timeout_')
+            if p1_timeout<=p2_timeout:
+                # print('p1_timeout')
+                paddle1_vel=0
+                barrier=2
+                p1_timeout=time.clock()
+                p2_timeout=time.clock()
+                game()
+            elif p1_timeout>p2_timeout:
+                # print('p2_timeout')
+                paddle2_vel=0
+                barrier=2
+                p1_timeout=time.clock()
+                p2_timeout=time.clock()
+                game()
 
         
 if __name__ == '__main__':
     __init__()
+
     wst = threading.Thread(target=serve_app, args=(sio,app))
     wst.daemon = True
     wst.start()
+
     StartTime=time.time()
     
-timeout= threading.Thread(target=action)
-timeout.start()
-# class setInterval :
-#     def __init__(self,interval,action) :
-#         self.interval=interval
-#         self.action=action
-#         self.stopEvent=threading.Event()
-#         thread=threading.Thread(target=self.__setInterval)
-#         thread.start()
 
-#     def __setInterval(self) :
-#         nextTime=time.time()+self.interval
-#         while not self.stopEvent.wait(nextTime-time.time()) :
-#             nextTime+=self.interval
-#             self.action()
+# timeout= threading.Thread(target=action)
+# timeout.start()
+class setInterval :
+    def __init__(self,interval,action) :
+        self.interval=interval
+        self.action=action
+        self.stopEvent=threading.Event()
+        thread=threading.Thread(target=self.__setInterval)
+        thread.start()
 
-#     def cancel(self) :
-#         self.stopEvent.set()
+    def __setInterval(self) :
+        nextTime=time.time()+self.interval
+        while not self.stopEvent.wait(nextTime-time.time()) :
+            nextTime+=self.interval
+            self.action()
 
-# # # start action every 0.6s
-# inter=setInterval(0.01,action)
-# print('just after setInterval -> time : {:.1f}s'.format(time.time()-StartTime))
+    def cancel(self) :
+        self.stopEvent.set()
 
-# # # will stop interval in 5s
-# t=threading.Timer(25,inter.cancel)
-# t.start()
+# # start action every 0.6s
+inter=setInterval(0.01,action)
+print('just after setInterval -> time : {:.1f}s'.format(time.time()-StartTime))
+
+# # will stop interval in 5s
+t=threading.Timer(25,inter.cancel)
+t.start()
