@@ -35,7 +35,7 @@ p1_timeout=0.0001
 p2_timeout=0.0001
 start=0 # control timeout loop
 
-# eventlet.monkey_patch()
+eventlet.monkey_patch()
 
 @sio.on('connect')
 def connect(sid, environ):
@@ -51,7 +51,7 @@ def on_P1_in(sid):
         send_to_Players('gameinfo')
         print('%f'%time.clock())
         start=1
-        # eventlet.spawn(action)
+        eventlet.spawn(action)
 
 @sio.on('P2_in')
 def on_P1_in(sid):
@@ -63,7 +63,7 @@ def on_P1_in(sid):
         send_to_Players('gameinfo')
         print('%f'%time.clock())
         start=1
-        # eventlet.spawn(action)
+        eventlet.spawn(action)
 
 @sio.on('P1')
 def on_P1(sid, msg):
@@ -297,8 +297,8 @@ if __name__ == '__main__':
     StartTime=time.time()
     
 
-timeout= threading.Thread(target=action)
-timeout.start()
+# timeout= threading.Thread(target=action)
+# timeout.start()
 # class setInterval :
 #     def __init__(self,interval,action) :
 #         self.interval=interval
