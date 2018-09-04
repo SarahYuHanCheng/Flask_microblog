@@ -20,7 +20,7 @@ WIDTH = 800
 HEIGHT = 400
 BALL_RADIUS = 20
 PAD_WIDTH = 8
-PAD_HEIGHT = math.ceil(HEIGHT/3)
+PAD_HEIGHT = math.ceil(HEIGHT)
 HALF_PAD_WIDTH = PAD_WIDTH // 2
 HALF_PAD_HEIGHT = PAD_HEIGHT // 2
 ball = [0, 0]
@@ -29,13 +29,13 @@ paddle1_move = 0
 paddle2_move = 0
 l_score = 0
 r_score = 0
-barrier=2 # ensure a round fair
+barrier=[0,0] # ensure a round fair
 cnt=0
-p1_timeout=0.0001
-p2_timeout=0.0001
+p1_rt=0.0001
+p2_rt=0.0001
 start=0 # control timeout loop
 
-eventlet.monkey_patch()
+# eventlet.monkey_patch()
 
 @sio.on('connect')
 def connect(sid, environ):
@@ -44,47 +44,47 @@ def connect(sid, environ):
 @sio.on('P1_in')
 def on_P1_in(sid):
     global barrier,start
-    barrier-=1
-    if barrier>0:
+    barrier[0]=1
+    if barrier[1]==0:
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
         print('%f'%time.clock())
         start=1
-        eventlet.spawn(action)
+        # eventlet.spawn(action)
 
 @sio.on('P2_in')
 def on_P1_in(sid):
     global barrier,start
-    barrier-=1    
-    if barrier>0:
+    barrier[1]=1    
+    if barrier[0]==0:
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
         print('%f'%time.clock())
         start=1
-        eventlet.spawn(action)
+        # eventlet.spawn(action)
 
 @sio.on('P1')
 def on_P1(sid, msg):
-    global paddle1_move,barrier,p1_timeout
+    global paddle1_move,barrier,p1_rt
     print('cnt ',msg['cnt'])
     paddle1_move=msg['paddle_vel']
     print('P1 ',paddle1_move)
-    p1_timeout=time.clock()
-    barrier-=1
-    if barrier==0:
+    p1_rt=time.clock()
+    barrier[0]=1
+    if barrier[1]==1:
         send_to_webserver()
         game()
 
 @sio.on('P2')
 def on_P2(sid, msg):
-    global paddle2_move,barrier,p2_timeout
+    global paddle2_move,barrier,p2_rt
     paddle2_move=msg['paddle_vel']
     print('P2 ',paddle2_move)
-    p2_timeout=time.clock()
-    barrier-=1
-    if barrier==0:
+    p2_rt=time.clock()
+    barrier[1]=1
+    if barrier[0]==1:
         send_to_webserver()
         game()
 
@@ -132,12 +132,12 @@ def game():
 def send_to_Players(instr):
     print('send_to_Players')
     global serversock,cnt,barrier
-    if (instr == 'gameinfo') and barrier==0:
+    if (instr == 'gameinfo') and barrier==[1,1]:
         cnt+=1
         msg={'msg':tuple([ball,paddle1[1],paddle2[1],cnt])}
         sio.emit(instr,msg)
         print('emit cnt ',cnt)
-        barrier=2
+        barrier=[0,0]
     elif instr == 'endgame':
         msg={'msg':ball}
         sio.emit(instr,msg)
@@ -209,7 +209,7 @@ def play():
             if r_score < 1:
                 ball_init(True)
             else:
-                barrier=1
+                # barrier=1
                 send_to_Players('endgame')
                 print('ball ',ball)
 
@@ -226,7 +226,7 @@ def play():
                 ball_init(False)
                 
             else:
-                barrier=1
+                # barrier=1
                 send_to_Players('endgame')
                 print('ball ',ball)
 
@@ -242,49 +242,43 @@ def serve_app(_sio, _app):
     serversock=eventlet.wsgi.server(eventlet.listen(('', 8000)), app) 
 
 def action() :
-    global p1_timeout, p2_timeout,barrier, paddle1_move, paddle2_move, start
+    print("action")
+    global p1_rt, p2_rt,barrier, paddle1_move, paddle2_move, start
+    # time.sleep(5)
+    timeout=0.025
     while True:
+        time.sleep(0.001)
         if start==1:
-            time.sleep(0.01)
-            # print('action ! -> time : {:.1f}s'.format(time.time()-StartTime))
-            print('p1_timeout ',p1_timeout)
-            print('p2_timeout ',p2_timeout)
-            print('time.clock()-p1_timeout ',time.clock()-p1_timeout)
-            print('time.clock()-p2_timeout ',time.clock()-p2_timeout)
             
-            if (time.clock()-p1_timeout)>0.025:
-                print('p1_timeout_')
-                
-                if p1_timeout<=p2_timeout:
-                    # print('p1_timeout')
-                    paddle1_move=0
-                    barrier=0
-                    p1_timeout=time.clock()
-                    p2_timeout=time.clock()
-                    game()
-                elif p1_timeout>p2_timeout:
-                    # print('p2_timeout')
-                    paddle2_move=0
-                    barrier=0
-                    p1_timeout=time.clock()
-                    p2_timeout=time.clock()
-                    game()
-            elif (time.clock()-p2_timeout)>0.025:
-                print('p2_timeout_')
-                if p1_timeout<=p2_timeout:
-                    # print('p1_timeout')
-                    paddle1_move=0
-                    barrier=2
-                    p1_timeout=time.clock()
-                    p2_timeout=time.clock()
-                    game()
-                elif p1_timeout>p2_timeout:
-                    # print('p2_timeout')
-                    paddle2_move=0
-                    barrier=2
-                    p1_timeout=time.clock()
-                    p2_timeout=time.clock()
-                    game()
+            
+    #         time.sleep(0.001)
+            print('action ! -> time : {:.1f}s'.format(time.time()))
+            if barrier[0]==0:
+                if (time.clock()-p1_rt)>timeout:
+                    print('p1_rt',time.clock()-p1_rt)
+                    if barrier[1]==0:
+                        timeout+=0.005
+                        print('p2 also no response: ',timeout)
+                    else:
+                        paddle1_move=0
+                        barrier=[1,1]
+                        p1_rt=time.clock()
+                        p2_rt=time.clock()
+                        game()
+                            
+            elif barrier[1]==0:
+                if (time.clock()-p2_rt)>timeout:
+                    print('p2_rt',time.clock()-p2_rt)
+                    if barrier[0]==0:
+                        timeout+=0.005
+                        print('p1 also no response: ',timeout)
+                    else:
+                        paddle2_move=0
+                        barrier=[1,1]
+                        p1_rt=time.clock()
+                        p2_rt=time.clock()
+                        game()
+
 
         
 if __name__ == '__main__':
@@ -293,12 +287,12 @@ if __name__ == '__main__':
     wst = threading.Thread(target=serve_app, args=(sio,app))
     wst.daemon = True
     wst.start()
-
+    timeout= threading.Thread(target=action)
+    timeout.start()
     StartTime=time.time()
     
 
-# timeout= threading.Thread(target=action)
-# timeout.start()
+
 # class setInterval :
 #     def __init__(self,interval,action) :
 #         self.interval=interval
