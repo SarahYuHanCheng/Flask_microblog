@@ -6,9 +6,10 @@
 # -----------------------------------------
 import time
 from socketIO_client import SocketIO, LoggingNamespace
+
 ball_pos=[[0,0]]
 paddle1_pos=[0] # paddle only Y axis
-move_unit=5
+move_unit=2
 paddle_vel=0
 count=0
 
@@ -24,8 +25,10 @@ def on_gameinfo(message):
 	print(tuple_msg[0])
 	cnt = tuple_msg[-1]
 	print('cnt',cnt)
+	if cnt>2:
+		del ball_pos[0]
 	ball_pos.append(tuple_msg[0])
-	paddle1_pos.append(tuple_msg[1])
+	# print(ball_pos)
 	
 	run()
 	communicate(cnt)
@@ -35,7 +38,7 @@ def run():
 	global count
 	count+=1
 	if count>10:
-		time.sleep(0.03)
+		# time.sleep(1)
 		count=0
 	global paddle_vel
 	if (ball_pos[-1][0]-ball_pos[-2][0]) <0: 
@@ -49,6 +52,8 @@ def run():
 	else: 
 		paddle_vel=0
 		print("ball moves right, no need to move paddle1")
+	# ball_pos.pop()
+	# paddle1_pos.pop()
 
 def communicate(cnt):
 	global paddle_vel
@@ -63,4 +68,4 @@ socketIO.on('wait',on_wait)
 socketIO.on('gameinfo',on_gameinfo)
 
 socketIO.emit('P1_in')
-socketIO.wait(seconds=60)
+socketIO.wait()
