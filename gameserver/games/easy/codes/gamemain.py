@@ -130,7 +130,7 @@ def game():
     send_to_Players('gameinfo')
 
 def send_to_Players(instr):
-    print('send_to_Players')
+    # print('send_to_Players')
     global serversock,cnt,barrier
     if (instr == 'gameinfo') and barrier==[1,1]:
         cnt+=1
@@ -168,7 +168,7 @@ def play():
             paddle1[1] += paddle1_move
             print('p1 bottom')
         else:
-            print('p2 else')
+            print('p1 else')
 
         if paddle2[1] > HALF_PAD_HEIGHT and paddle2[1] < HEIGHT - HALF_PAD_HEIGHT:
             paddle2[1] += paddle2_move
@@ -245,38 +245,42 @@ def action() :
     print("action")
     global p1_rt, p2_rt,barrier, paddle1_move, paddle2_move, start
     # time.sleep(5)
-    timeout=0.025
+    timeout=0.25
     while True:
-        time.sleep(0.001)
+        time.sleep(0.01)
         if start==1:
             
             
     #         time.sleep(0.001)
-            print('action ! -> time : {:.1f}s'.format(time.time()))
+            # print('action ! -> time : {:.1f}s'.format(time.time()))
             if barrier[0]==0:
+                print('p1_no')
                 if (time.clock()-p1_rt)>timeout:
                     print('p1_rt',time.clock()-p1_rt)
                     if barrier[1]==0:
                         timeout+=0.005
-                        print('p2 also no response: ',timeout)
-                    else:
-                        paddle1_move=0
-                        barrier=[1,1]
-                        p1_rt=time.clock()
-                        p2_rt=time.clock()
-                        game()
+                        print('p2 also no response, timeout increase: ',timeout)
+                
+                    paddle1_move=0
+                    barrier=[1,1]
+                    p1_rt=time.clock()
+                    p2_rt=time.clock()
+                    send_to_webserver()
+                    game()
                             
             elif barrier[1]==0:
+                print('p2_no')
                 if (time.clock()-p2_rt)>timeout:
                     print('p2_rt',time.clock()-p2_rt)
                     if barrier[0]==0:
                         timeout+=0.005
-                        print('p1 also no response: ',timeout)
+                        print('p1 also no response, timeout increase: ',timeout)
                     else:
                         paddle2_move=0
                         barrier=[1,1]
                         p1_rt=time.clock()
                         p2_rt=time.clock()
+                        send_to_webserver()
                         game()
 
 
@@ -287,6 +291,7 @@ if __name__ == '__main__':
     wst = threading.Thread(target=serve_app, args=(sio,app))
     wst.daemon = True
     wst.start()
+    wst.join()
     timeout= threading.Thread(target=action)
     timeout.start()
     StartTime=time.time()
