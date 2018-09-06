@@ -43,24 +43,28 @@ def connect(sid, environ):
 
 @sio.on('P1_in')
 def on_P1_in(sid):
-    global barrier,start
+    global barrier,start,p1_rt,p2_rt
     barrier[0]=1
     if barrier[1]==0:
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
+        p1_rt=time.clock()
+        p2_rt=time.clock()
         print('%f'%time.clock())
         start=1
         # eventlet.spawn(action)
 
 @sio.on('P2_in')
 def on_P1_in(sid):
-    global barrier,start
+    global barrier,start,p1_rt,p2_rt
     barrier[1]=1    
     if barrier[0]==0:
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
+        p1_rt=time.clock()
+        p2_rt=time.clock()
         print('%f'%time.clock())
         start=1
         # eventlet.spawn(action)
@@ -75,7 +79,7 @@ def on_P1(sid, msg):
     barrier[0]=1
     if barrier[1]==1:
         send_to_webserver()
-        game()
+        game('on_p1')
 
 @sio.on('P2')
 def on_P2(sid, msg):
@@ -86,12 +90,14 @@ def on_P2(sid, msg):
     barrier[1]=1
     if barrier[0]==1:
         send_to_webserver()
-        game()
+        game('on_p2')
 
 
 @sio.on('disconnect')#, namespace='/chat'
 def disconnect(sid):
-    print('disconnect ', sid)
+    global p1_rt,p2_rt,barrier
+    print('barrier ', barrier)
+    print('disconnect ', time.clock())
     return
 
 def ball_init(right):
@@ -122,31 +128,36 @@ def __init__():
 def score():
     pass
 
-def game():
+def game(where):
     try:
+        print(where)
         play()
     except:
         return
     send_to_Players('gameinfo')
 
 def send_to_Players(instr):
-    # print('send_to_Players')
+
     global serversock,cnt,barrier
+    print('send_to_Players barrier', barrier)
+
     if (instr == 'gameinfo') and barrier==[1,1]:
         cnt+=1
         msg={'msg':tuple([ball,paddle1[1],paddle2[1],cnt])}
         sio.emit(instr,msg)
         print('emit cnt ',cnt)
-        barrier=[0,0]
+        
     elif instr == 'endgame':
         msg={'msg':ball}
         sio.emit(instr,msg)
         print('endgame %f'%time.clock()) 
+    barrier=[0,0]
+    print('barrier in send_to_Players:',barrier)
 
 def send_to_webserver():
     global ball,paddle1,paddle2
-    with SocketIO('localhost', 5000, LoggingNamespace) as socketIO:
-        socketIO.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2])})
+    # with SocketIO('localhost', 5000, LoggingNamespace) as socketIO:
+    #     socketIO.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2])})
 
     
 
@@ -245,18 +256,19 @@ def action() :
     print("action")
     global p1_rt, p2_rt,barrier, paddle1_move, paddle2_move, start
     # time.sleep(5)
-    timeout=0.25
+    timeout=0.8
     while True:
-        time.sleep(0.01)
+        time.sleep(0.03)
         if start==1:
             
             
     #         time.sleep(0.001)
             # print('action ! -> time : {:.1f}s'.format(time.time()))
             if barrier[0]==0:
-                print('p1_no')
-                if (time.clock()-p1_rt)>timeout:
-                    print('p1_rt',time.clock()-p1_rt)
+                p1_rt_sub=time.clock()-p1_rt
+                print('p1_rt_sub %f p2_rt_sub %f, barrier '%(p1_rt_sub,time.clock()-p2_rt)+str(barrier))
+                
+                if p1_rt_sub>timeout:
                     if barrier[1]==0:
                         timeout+=0.005
                         print('p2 also no response, timeout increase: ',timeout)
@@ -266,22 +278,18 @@ def action() :
                     p1_rt=time.clock()
                     p2_rt=time.clock()
                     send_to_webserver()
-                    game()
+                    game('p1_timeout')
                             
             elif barrier[1]==0:
                 print('p2_no')
                 if (time.clock()-p2_rt)>timeout:
                     print('p2_rt',time.clock()-p2_rt)
-                    if barrier[0]==0:
-                        timeout+=0.005
-                        print('p1 also no response, timeout increase: ',timeout)
-                    else:
-                        paddle2_move=0
-                        barrier=[1,1]
-                        p1_rt=time.clock()
-                        p2_rt=time.clock()
-                        send_to_webserver()
-                        game()
+                    paddle2_move=0
+                    barrier=[1,1]
+                    p1_rt=time.clock()
+                    p2_rt=time.clock()
+                    send_to_webserver()
+                    game('p2_timeout')
 
 
         
@@ -291,7 +299,7 @@ if __name__ == '__main__':
     wst = threading.Thread(target=serve_app, args=(sio,app))
     wst.daemon = True
     wst.start()
-    wst.join()
+    # wst.join()
     timeout= threading.Thread(target=action)
     timeout.start()
     StartTime=time.time()
