@@ -49,9 +49,9 @@ def on_P1_in(sid):
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
-        p1_rt=time.clock()
-        p2_rt=time.clock()
-        print('%f'%time.clock())
+        p1_rt=time.time()
+        p2_rt=time.time()
+        print('%f'%time.time())
         start=1
         # eventlet.spawn(action)
 
@@ -63,9 +63,9 @@ def on_P1_in(sid):
         sio.emit("wait")
     else:
         send_to_Players('gameinfo')
-        p1_rt=time.clock()
-        p2_rt=time.clock()
-        print('%f'%time.clock())
+        p1_rt=time.time()
+        p2_rt=time.time()
+        print('%f'%time.time())
         start=1
         # eventlet.spawn(action)
 
@@ -75,7 +75,7 @@ def on_P1(sid, msg):
     print('cnt ',msg['cnt'])
     paddle1_move=msg['paddle_vel']
     print('P1 ',paddle1_move)
-    p1_rt=time.clock()
+    p1_rt=time.time()
     barrier[0]=1
     if barrier[1]==1:
         send_to_webserver()
@@ -86,7 +86,7 @@ def on_P2(sid, msg):
     global paddle2_move,barrier,p2_rt
     paddle2_move=msg['paddle_vel']
     print('P2 ',paddle2_move)
-    p2_rt=time.clock()
+    p2_rt=time.time()
     barrier[1]=1
     if barrier[0]==1:
         send_to_webserver()
@@ -97,7 +97,7 @@ def on_P2(sid, msg):
 def disconnect(sid):
     global p1_rt,p2_rt,barrier
     print('barrier ', barrier)
-    print('disconnect ', time.clock())
+    print('disconnect ', time.time())
     return
 
 def ball_init(right):
@@ -150,7 +150,7 @@ def send_to_Players(instr):
     elif instr == 'endgame':
         msg={'msg':ball}
         sio.emit(instr,msg)
-        print('endgame %f'%time.clock()) 
+        print('endgame %f'%time.time()) 
     barrier=[0,0]
     print('barrier in send_to_Players:',barrier)
 
@@ -256,17 +256,17 @@ def action() :
     print("action")
     global p1_rt, p2_rt,barrier, paddle1_move, paddle2_move, start
     # time.sleep(5)
-    timeout=0.8
+    timeout=1
     while True:
-        time.sleep(0.03)
+        time.sleep(0.05)
         if start==1:
             
             
     #         time.sleep(0.001)
             # print('action ! -> time : {:.1f}s'.format(time.time()))
             if barrier[0]==0:
-                p1_rt_sub=time.clock()-p1_rt
-                print('p1_rt_sub %f p2_rt_sub %f, barrier '%(p1_rt_sub,time.clock()-p2_rt)+str(barrier))
+                p1_rt_sub=time.time()-p1_rt
+                print('p1_rt_sub %f p2_rt_sub %f, barrier '%(p1_rt_sub,time.time()-p2_rt)+str(barrier))
                 
                 if p1_rt_sub>timeout:
                     if barrier[1]==0:
@@ -275,19 +275,19 @@ def action() :
                 
                     paddle1_move=0
                     barrier=[1,1]
-                    p1_rt=time.clock()
-                    p2_rt=time.clock()
+                    p1_rt=time.time()
+                    p2_rt=time.time()
                     send_to_webserver()
                     game('p1_timeout')
                             
             elif barrier[1]==0:
                 print('p2_no')
-                if (time.clock()-p2_rt)>timeout:
-                    print('p2_rt',time.clock()-p2_rt)
+                if (time.time()-p2_rt)>timeout:
+                    print('p2_rt',time.time()-p2_rt)
                     paddle2_move=0
                     barrier=[1,1]
-                    p1_rt=time.clock()
-                    p2_rt=time.clock()
+                    p1_rt=time.time()
+                    p2_rt=time.time()
                     send_to_webserver()
                     game('p2_timeout')
 
