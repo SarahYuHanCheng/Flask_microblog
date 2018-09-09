@@ -11,6 +11,8 @@ server.listen(5)  # max backlog of connections
 
 print('Listening on {}:{}'.format(bind_ip, bind_port))
 
+playerlist = []
+
 WIDTH = 800
 HEIGHT = 400
 BALL_RADIUS = 20
@@ -148,6 +150,7 @@ def game(where):
 def handle_client_connection(client_socket):
 	global paddle1_move,barrier,p1_rt,paddle2_move,p2_rt
 	client_socket.send(b'connectserver')
+	cnt=0
 	while True:
 		request = client_socket.recv(1024)
 		print('Received {}'.format(request))
@@ -156,26 +159,30 @@ def handle_client_connection(client_socket):
 		if msg['type']=='info':
 			print('info')
 			if msg['who']=='P1':
-				print('P1 info')
+				print('P1 content',msg['content'])
 				paddle1_move=msg['content']
 				p1_rt=time.time()
 				barrier[0]=1
 				if barrier[1]==1:
 					# send_to_webserver()
 					# game('on_p1')
-					client_socket.send(b'ACK!')
-					
+					cnt+=1
+					for cli in range(0,len(playerlist)):
+						playerlist[cli].send(str(msg['content']).encode())
+					barrier=[0,0]
 
 			elif msg['who']=='P2':
-				print('P2 info')
+				print('P2 content',msg['content'])
 				paddle2_move=msg['content']
 				p2_rt=time.time()
 				barrier[1]=1
-				print('barrier',barrier)
 				if barrier[0]==1:
 					# send_to_webserver()
 					# game('on_p2')
-					client_socket.send(b'ACK!')
+					cnt+=1
+					for cli in range(0,len(playerlist)):
+						playerlist[cli].send(str(msg['content']).encode())
+					barrier=[0,0]
 
 		elif msg['type']=='connected':
 			
@@ -186,9 +193,9 @@ def handle_client_connection(client_socket):
 
 		elif msg['type']=='disconnect':
 			if msg['who']=='P1':
-				print('P1 leave')
+				print('P1 leave',cnt)
 			elif msg['who']=='P2':
-				print('P2 leave')
+				print('P2 leave',cnt)
 
 		
 		# client_socket.close()
@@ -196,6 +203,9 @@ def handle_client_connection(client_socket):
 
 while True:
 	client_sock, address = server.accept()
+	playerlist.append(client_sock)
+	# print ('[%i users online]\n' % len(playerlist))
+	# print(playerlist)
 	print('Accepted connection from {}:{}'.format(address[0], address[1]))
 	client_handler = threading.Thread(
 		target=handle_client_connection,
