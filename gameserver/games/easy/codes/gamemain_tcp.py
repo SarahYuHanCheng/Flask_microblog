@@ -62,18 +62,21 @@ def send_to_webserver():
 
 def send_to_Players(instr):
 
-    global serversock,cnt,barrier
+    global cnt,barrier,ball,paddle1,paddle2
     print('send_to_Players barrier', barrier)
 
     if (instr == 'gameinfo') and barrier==[1,1]:
         cnt+=1
         msg={'msg':tuple([ball,paddle1[1],paddle2[1],cnt])}
-        # sio.emit(instr,msg)
-        print('emit cnt ',cnt)
+        for cli in range(0,len(playerlist)):
+            playerlist[cli].send(json.dumps(msg).encode())
+        barrier=[0,0]
         
     elif instr == 'endgame':
         msg={'msg':ball}
-        # sio.emit(instr,msg)
+        for cli in range(0,len(playerlist)):
+            playerlist[cli].send(json.dumps(msg).encode())
+        barrier=[0,0]
         print('endgame %f'%time.time()) 
     barrier=[0,0]
 
@@ -174,7 +177,7 @@ def game(where):
 def handle_client_connection(client_socket):
     global paddle1_move,barrier,p1_rt,paddle2_move,p2_rt, playerlist, start
     client_socket.send(b'connectserver')
-    cnt=0
+    
     while True:
         request = client_socket.recv(1024)
         # print('Received {}'.format(request))
@@ -189,12 +192,8 @@ def handle_client_connection(client_socket):
                 barrier[0]=1
                 if barrier[1]==1:
                     # send_to_webserver()
-                    # game('on_p1')
-                    cnt+=1
-                    for cli in range(0,len(playerlist)):
-                        playerlist[cli].send(str(msg['content']).encode())
-                    barrier=[0,0]
-
+                    game('on_p1')
+                    
             elif msg['who']=='P2':
                 # print('P2 content',msg['content'])
                 paddle2_move=msg['content']
@@ -202,11 +201,8 @@ def handle_client_connection(client_socket):
                 barrier[1]=1
                 if barrier[0]==1:
                     # send_to_webserver()
-                    # game('on_p2')
-                    cnt+=1
-                    for cli in range(0,len(playerlist)):
-                        playerlist[cli].send(str(msg['content']).encode())
-                    barrier=[0,0]
+                    game('on_p2')
+                    
 
         elif msg['type']=='connect':
             
@@ -275,10 +271,8 @@ def timeout_check():
                     p1_rt=time.time()
                     p2_rt=time.time()
                     # send_to_webserver()
-                    # game('p1_timeout')
-                    for cli in range(0,len(playerlist)):
-                        playerlist[cli].send(b'111')
-                    barrier=[0,0]
+                    game('p1_timeout')
+                    
 
                     time.sleep(0.01)
                             
@@ -291,10 +285,8 @@ def timeout_check():
                     p1_rt=time.time()
                     p2_rt=time.time()
                     # send_to_webserver()
-                    # game('p2_timeout')
-                    for cli in range(0,len(playerlist)):
-                        playerlist[cli].send(b'222')
-                    barrier=[0,0]
+                    game('p2_timeout')
+                    
                     time.sleep(0.01)
 
 
