@@ -92,37 +92,37 @@ def play():
     try:
         global paddle1, paddle2,paddle1_move,paddle2_move, ball, ball_vel, l_score, r_score, cnt
         global barrier
-        print('ball_play: ',ball)
+        # print('ball_play: ',ball)
         
         if paddle1[1] > HALF_PAD_HEIGHT and paddle1[1] < HEIGHT - HALF_PAD_HEIGHT:
             paddle1[1] += paddle1_move
-            print('p1 normal')
+            # print('p1 normal')
         elif paddle1[1] <= HALF_PAD_HEIGHT and paddle1_move > 0:
             paddle1[1] = HALF_PAD_HEIGHT
             paddle1[1] += paddle1_move
-            print('p1 top')
+            # print('p1 top')
         elif paddle1[1] >= HEIGHT - HALF_PAD_HEIGHT and paddle1_move < 0:
             paddle1[1] = HEIGHT - HALF_PAD_HEIGHT
             paddle1[1] += paddle1_move
-            print('p1 bottom')
+            # print('p1 bottom')
         else:
             print('p1 else')
 
         if paddle2[1] > HALF_PAD_HEIGHT and paddle2[1] < HEIGHT - HALF_PAD_HEIGHT:
             paddle2[1] += paddle2_move
-            print('p2 normal')
+            # print('p2 normal')
         elif paddle2[1] <= HALF_PAD_HEIGHT and paddle2_move > 0:
             paddle1[1] = HALF_PAD_HEIGHT
             paddle2[1] += paddle2_move
-            print('p2 top')
+            # print('p2 top')
         elif paddle2[1] >= HEIGHT - HALF_PAD_HEIGHT and paddle2_move < 0:
             paddle1[1] =HEIGHT- HALF_PAD_HEIGHT
             paddle2[1] += paddle2_move
-            print('p2 bottom')
+            # print('p2 bottom')
         else:
             print('p2 else')
 
-        print('paddle:(%d,%d,%d)'%(paddle1[1],paddle2[1],ball[0]))
+        # print('paddle:(%d,%d,%d)'%(paddle1[1],paddle2[1],ball[0]))
 
         ball[0] += int(ball_vel[0])
         ball[1] += int(ball_vel[1])
@@ -177,7 +177,7 @@ def play():
 
 def game(where):
     try:
-        print(where)
+        # print(where)
         play()
     except:
         return
@@ -199,7 +199,7 @@ def handle_client_connection(client_socket):
                 paddle1_move=msg['content']
                 p1_rt=time.time()
                 barrier[0]=1
-                print('p1 barrier',barrier)
+                # print('p1 barrier',barrier)
                 if barrier[1]==1:
                     send_to_webserver()
                     game('on_p1')
@@ -209,7 +209,7 @@ def handle_client_connection(client_socket):
                 paddle2_move=msg['content']
                 p2_rt=time.time()
                 barrier[1]=1
-                print('p2 barrier',barrier)
+                # print('p2 barrier',barrier)
                 if barrier[0]==1:
                     send_to_webserver()
                     game('on_p2')
@@ -265,7 +265,7 @@ def timeout_check():
     timeout=0.1
     while True:
         
-        time.sleep(0.003)
+        time.sleep(0.06)
         if start==1:
             # print("check")
             if barrier[0]==0:
@@ -275,7 +275,7 @@ def timeout_check():
                 if p1_rt_sub>timeout:
                     if barrier[1]==0:
                         timeout+=0.005    
-                        print('p2 also no response, timeout increase: ',timeout)
+                        # print('p2 also no response, timeout increase: ',timeout)
                     
 
                     paddle1_move=0
@@ -291,7 +291,7 @@ def timeout_check():
             elif barrier[1]==0:
                 # print('p2_no')
                 if (time.time()-p2_rt)>timeout:
-                    print('p2_rt',time.time()-p2_rt)
+                    # print('p2_rt',time.time()-p2_rt)
                     paddle2_move=0
                     barrier=[1,1]
                     p1_rt=time.time()
