@@ -20,8 +20,15 @@
   </style>
 </head>
 <body> -->
+<label for="mode" class="control-label">Language Mode:</label>
+<select id="mode" class="form-control"onChange="changeMode()">
+    <option>javascript</option>
+    <option>json</option>
+    <option>xml</option>
+    <option>python</option>
+</select>
 
-<pre id="editor">function foo(items) {
+<pre id="editor" style="height:255px">function foo(items) {
     var i;
     for (i = 0; i &lt; items.length; i++) {
         alert("Ace Rocks " + items[i]);
@@ -42,6 +49,18 @@
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/twilight");
     editor.session.setMode("ace/mode/javascript");
+    function changeMode(){
+        var mode = document.getElementById('mode').value;
+        editor.session.setMode("ace/mode/"+ mode);
+        var contents = {
+            javascript: 'alert("Write something here...");',
+            json: '{"value": "Write something here..."}',
+            python: 'def function():\n   ',
+            xml: '<value attr="something">Write something here...</value>'
+        };
+        editor.setValue(contents[mode]);
+        
+    }
     var editor_content=editor.getValue();
     // console.log(editor_content);
     function myFunction() {
