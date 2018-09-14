@@ -33,6 +33,7 @@ cnt=0
 p1_rt=0.0001
 p2_rt=0.0001
 start=0 # control timeout loop
+lock = threading.Lock()
 
 def ball_init(right):
     global ball, ball_vel
@@ -198,41 +199,54 @@ def handle_client_connection(client_socket):
                 # print('P1 content',msg['content'])
                 paddle1_move=msg['content']
                 p1_rt=time.time()
-                barrier[0]=1
-                # print('p1 barrier',barrier)
-                if barrier[1]==1:
-                    send_to_webserver()
-                    game('on_p1')
+                lock.acquire()
+                try:
+                    barrier[0]=1
+                    if barrier[1]==1:
+                        send_to_webserver()
+                        game('on_p1')
+                finally:
+                    lock.release()
                     
             elif msg['who']=='P2':
                 # print('P2 content',msg['content'])
                 paddle2_move=msg['content']
                 p2_rt=time.time()
-                barrier[1]=1
-                # print('p2 barrier',barrier)
-                if barrier[0]==1:
-                    send_to_webserver()
-                    game('on_p2')
+                lock.acquire()
+                try:
+                    barrier[1]=1
+                    if barrier[0]==1:
+                        send_to_webserver()
+                        game('on_p2')
+                finally:
+                    lock.release()
+            
+                
                     
 
         elif msg['type']=='connect':
             
             if msg['who']=='P1':
                 print('P1 in',barrier)
-                barrier[0]=1
-
-                if barrier[1]==1:
-                	print("p1_start")
-                	start=1
-                	# barrier=[0,0]
+                lock.acquire()
+                try:
+                    barrier[0]=1
+                    if barrier[1]==1:
+                        print("p1_start")
+                        start=1
+                finally:
+                    lock.release()
                 
             elif msg['who']=='P2':
                 print('P2 in',barrier)
-                barrier[1]=1
-                if barrier[0]==1:
-                	print("p1_start")
-                	start=1
-                	# barrier=[0,0]
+                lock.acquire()
+                try:
+                    barrier[1]=1
+                    if barrier[0]==1:
+                        print("p1_start")
+                        start=1
+                finally:
+                    lock.release()
 
         elif msg['type']=='disconnect':
             if msg['who']=='P1':
@@ -308,9 +322,7 @@ if __name__ == '__main__':
     wst = threading.Thread(target=serve_app)
     wst.daemon = True
     wst.start()
-    # wst.join()
-    timeout= threading.Thread(target=timeout_check)
-    timeout.start()
+    wst.join()
+    # timeout= threading.Thread(target=timeout_check)
+    # timeout.start()
     # StartTime=time.time()/
-    
-
