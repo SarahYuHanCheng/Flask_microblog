@@ -224,7 +224,7 @@ def handle_client_connection(client_socket):
                 if barrier[1]==1:
                 	print("p1_start")
                 	start=1
-                	barrier=[0,0]
+                	# barrier=[0,0]
                 
             elif msg['who']=='P2':
                 print('P2 in',barrier)
@@ -232,7 +232,7 @@ def handle_client_connection(client_socket):
                 if barrier[0]==1:
                 	print("p1_start")
                 	start=1
-                	barrier=[0,0]
+                	# barrier=[0,0]
 
         elif msg['type']=='disconnect':
             if msg['who']=='P1':
