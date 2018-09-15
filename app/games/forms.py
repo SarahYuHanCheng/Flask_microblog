@@ -50,6 +50,19 @@ class CommentCodeForm(FlaskForm):
 	# 		user = User.query.filter_by(username=self.username.data).first()
 	# 		if user is not None:
 	# 			raise ValidationError('Please use a different username.')
+class OpenRoomForm(FlaskForm):
+    """Accepts a nickname and a room."""
+    name = StringField('UserName', validators=[DataRequired()])
+    room_name = StringField('GameRoomName', validators=[DataRequired()])
+  #   def validate_gamename(self, room_name):
+		# room = Room.query.filter_by(room_name=room_name.data).first()
+		# if room is not None:
+		# 	raise ValidationError('Please use a different roomname.')
+
+    submit = SubmitField('Enter Gameroom')
+
+
+
 class LoginForm(FlaskForm):
     """Accepts a nickname and a room."""
     name = StringField('UserName', validators=[DataRequired()])
