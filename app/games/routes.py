@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, current_app, session
 from app import db
-from app.games.forms import CreateGameForm, StartGameForm, CommitCodeForm,CommentCodeForm,ChatForm, OpenRoomForm
+from app.games.forms import CreateGameForm, StartGameForm, CommitCodeForm,CommentCodeForm, OpenRoomForm, LoginForm
 from flask_login import current_user, login_user, logout_user,login_required
 from app.models import User, Comment, Game, Log, Code, Comment
 from werkzeug.urls import url_parse
@@ -47,6 +47,7 @@ def create_game():
 		game = Game(user_id=form.user_id.data,gamename=form.gamename.data,descript=form.descript.data, game_lib=form.game_lib.data, example_code=form.example_code.data)
 		db.session.add(game)
 		db.session.commit()
+		
 		# current_game=game
 		# print(current_game)
 		# '''obj_to_json'''
@@ -74,18 +75,37 @@ def open_room():
 	
 	form = OpenRoomForm()
 	if form.validate_on_submit():
-		# room = Room(roomname=form.roomname.data, game_id=gameId, player_list=form.player_list.data)
-		# db.session.add(room)
-		# db.session.commit()
-		# # current_room=room
+		room = Room(roomname=form.roomname.data, game_id=gameId, player_list=form.player_list.data)
+		db.session.add(room)
+		db.session.commit()
+		
+		session['roomname'] = room.roomname
+		session['room_id'] = room.id
+		session['room_players']=room.player_list
 		flash('Congratulations, now start the room!')
+		return redirect(url_for('games.room_wait'))
 		# q_room=Room.query.filter_by(roomname=form.roomname.data).first()
 		# return redirect(url_for('games.room_wait',room=room))
+	elif request.method == 'GET':
+		form.name.data = session.get('name', '')
+        # form.room_id.data = session.get('room_id', '')
 	return render_template('games/open_room.html', title='open_room',form=form)
 
 @bp.route('/room_wait', methods=['GET','POST'])
 @login_required
 def room_wait(room):
+	room_id=session.get('room_id')
+	room=Room.query.filter_by(id=room_id).first()
+	player_list=room.player_list.split(',')
+	if current_user in player_list:
+		player_list.remove(current_user)
+		str_list=''.join(player_list)
+		room.player_list=str_list
+		db.session.commit()
+	
+	is_all_in_room =len(player_list)
+	print(is_all_in_room)
+    # form.room.data = session.get('room', '')
 	if is_all_in_room:
 		return redirect(url_for('games.start_game',roomId=current_room.id))
 	room_game = Game.query.filter_by(id=room.game_id).first()
@@ -134,7 +154,7 @@ def commit_code():
 	flash('Your code have been saved.')
 	current_code=code.id
 	print('commit')
-	ws = create_connection("ws://140.116.82.229:9000")
+	ws = create_connection("ws://140.116.82.229:8000")
 	print("Sending 'Hello, World'...")
 	ws.send(json.dumps({'code':code.body,'room':'room','logId':current_log,'userId':'12345'}))
 	print("Receiving...")
@@ -147,7 +167,7 @@ def commit_code():
 @bp.route('/', methods=['GET', 'POST'])
 def index():
     """Login form to enter a room."""
-    form = ChatForm()
+    form = LoginForm()
     if form.validate_on_submit():
         session['name'] = form.name.data
         session['room'] = form.room.data
