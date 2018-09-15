@@ -35,7 +35,30 @@
     }
 }</pre>
 <br>
-<button id="submit" onclick="myFunction()">submit</button>
+<!-- <button id="submit" onclick="myFunction()">submit</button> -->
+<!-- <div class="row">
+        {% if commit_form %}
+        {{ commit_form.hidden_tag() }}
+        {{ commit_form.commit_msg.label }}{{ commit_form.commit_msg() }}
+        {{ commit_form.submit() }}
+        {% endif %}
+    </div> -->
+<!-- <form method="POST">
+        {% if commit_form %}
+        {{ commit_form.csrf_token }}
+        {{ commit_form.hidden_tag() }}
+        {{ commit_form.commit_msg.label }}{{ commit_form.commit_msg() }}
+        {% endif %}
+        <input type="submit" value="htmlcommit" onclick="myFunction()">
+</form> -->
+<form method="POST" action="{{ url_for('games.commit_code') }}">
+<!-- <form method="GET"> -->
+        <input type="text" name="commit_msg" id="commit_msg" placeholder="use html form for all col"">
+        <input type="hidden" name="commit_msg" id="user_id" value="xxx">
+        <input type="hidden" name="commit_msg" id="game_id" value="xxx">
+        <input type="hidden" name="commit_msg" id="log_id" value="xxx">
+        <input type="submit" value="commit"  onclick="myFunction()">
+</form>
 <script src="{{
   url_for('static', filename='src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8">
   </script>
@@ -62,11 +85,16 @@
         
     }
     var editor_content=editor.getValue();
-    // console.log(editor_content);
+    
+    
+    console.log(editor_content);
     function myFunction() {
+        var commit_msg = document.getElementById('commit_msg').value; 
+        console.log(commit_msg); 
             $.getJSON($SCRIPT_ROOT + '/games/commit_code'
               , {
-            editor_content: editor_content
+            editor_content: editor_content,
+            commit_msg:commit_msg
             }
             , function(data) {
                 var response = data.result;

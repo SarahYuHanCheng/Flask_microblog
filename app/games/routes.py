@@ -135,20 +135,50 @@ def start_game(gameId):
 @bp.route('/game_view/<int:logId>', methods=['GET','POST'])
 @login_required
 def game_view(logId):
+	
+	comment_form = CommentCodeForm() #current_log.id
+	name = session.get('name', '')
+	room = session.get('room', '')
+	
+	if request.method == 'GET':
+		
+		if name == '' or room == '':
+			return redirect(url_for('.index'))
+		
+		current_code=logId
+		page = request.args.get('page', 1, type=int)
+		comments = Comment.query.filter_by(code_id = current_code).order_by(Comment.timestamp.desc()).paginate(
+        page, current_app.config['POSTS_PER_PAGE'], False)
+		
+		# next_url = url_for('games.game_view', page=comments.next_num, logId=current_log) \
+		# if comments.has_next else None
+		# prev_url = url_for('games.game_view',page = comments.prev_num, logId=current_log) \
+		# if comments.has_prev else None
+		return render_template('games/game_view.html',logId=current_log, title='Commit Code',
+                           comment_form=comment_form,comments=comments.items, name=name, room=room) #next_url=next_url, prev_url=prev_url
 
-	return render_template('games/game_view.html')
+	elif comment_form.validate_on_submit():
+		current_code=logId
+		comment = Comment(code_id=current_code, body=comment_form.body.data)#comment_form.code_id.data
+		db.session.add(comment)
+		db.session.commit()
+		flash('Your code have been saved.')
+		return render_template('games/game_view.html',logId=current_log, title='Commit Code',
+                           comment_form=comment_form, name=name, room=room)
+
 
 @bp.route('/commit_code', methods=['GET','POST'])
 @login_required
 def commit_code():
-
-	# name = session.get('name', '')
-	# room = session.get('room', '')
+	name = session.get('name', '')
+	room = session.get('room', '')
 	# if name == '' or room == '':
 	# 		return redirect(url_for('.index'))
 	editor_content = request.args.get('editor_content', 0, type=str)
-	print(json.dumps({'selected post': str(editor_content)}))
-	code = Code(log_id='1234', body=editor_content, commit_msg="fake commit_msg.data",game_id='12',user_id='12345')
+	commit_msg = request.args.get('commit_msg', 0, type=str)
+	print(commit_msg)
+	print(json.dumps({'selected post': str(commit_msg)}))
+	code = Code(log_id='1234', body=editor_content, commit_msg=commit_msg,game_id=name,user_id=room)
 	db.session.add(code)
 	db.session.commit()
 	flash('Your code have been saved.')
