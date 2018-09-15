@@ -29,6 +29,7 @@ styles.join("\n")
 .ace_editor {
     position: relative;
     overflow: hidden;
+    height: 400px;
     font: 12px/normal 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
     direction: ltr;
     text-align: left;
