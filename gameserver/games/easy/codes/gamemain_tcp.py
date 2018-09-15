@@ -3,7 +3,7 @@ import threading,math, random
 from socketIO_client import SocketIO, LoggingNamespace
 
 
-bind_ip = '127.0.0.1'
+bind_ip = '140.116.82.229'
 bind_port = 8000
 
 
@@ -62,7 +62,7 @@ def __init__():
 
 def send_to_webserver():
     global ball,paddle1,paddle2
-    with SocketIO('localhost', 5000, LoggingNamespace) as socketIO:
+    with SocketIO('140.116.82.229', 5000, LoggingNamespace) as socketIO:
         socketIO.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2])})
 
 
@@ -70,7 +70,6 @@ def send_to_webserver():
 def send_to_Players(instr):
 
     global cnt,barrier,ball,paddle1,paddle2
-    # print('send_to_Players barrier', barrier)
 
     if (instr == 'gameinfo') and barrier==[1,1]:
         cnt+=1
@@ -178,7 +177,6 @@ def play():
 
 def game(where):
     try:
-        # print(where)
         play()
     except:
         return
@@ -228,23 +226,27 @@ def handle_client_connection(client_socket):
             
             if msg['who']=='P1':
                 print('P1 in',barrier)
+                p1_rt=time.time()
                 lock.acquire()
                 try:
                     barrier[0]=1
                     if barrier[1]==1:
                         print("p1_start")
                         start=1
+                        send_to_Players("gameinfo")
                 finally:
                     lock.release()
                 
             elif msg['who']=='P2':
                 print('P2 in',barrier)
+                p2_rt=time.time()
                 lock.acquire()
                 try:
                     barrier[1]=1
                     if barrier[0]==1:
-                        print("p1_start")
+                        print("p2_start")
                         start=1
+                        send_to_Players("gameinfo")
                 finally:
                     lock.release()
 
@@ -273,25 +275,18 @@ def serve_app():
         client_handler.start()
 
 def timeout_check():
-    # print("call timeout")
     global p1_rt, p2_rt,barrier, paddle1_move, paddle2_move, start,playerlist
-    # time.sleep(5)
+    
     timeout=0.1
-    while True:
-        
-        time.sleep(0.06)
-        if start==1:
-            # print("check")
+    if start==1:
+        lock.acquire()
+        try:
             if barrier[0]==0:
                 p1_rt_sub=time.time()-p1_rt
                 # print('p1_rt_sub %f p2_rt_sub %f, barrier '%(p1_rt_sub,time.time()-p2_rt)+str(barrier))
-                
                 if p1_rt_sub>timeout:
                     if barrier[1]==0:
-                        timeout+=0.005    
-                        # print('p2 also no response, timeout increase: ',timeout)
-                    
-
+                        timeout+=0.005
                     paddle1_move=0
                     barrier=[1,1]
                     p1_rt=time.time()
@@ -299,9 +294,7 @@ def timeout_check():
                     send_to_webserver()
                     game('p1_timeout')
                     
-
-                    time.sleep(0.01)
-                            
+    
             elif barrier[1]==0:
                 # print('p2_no')
                 if (time.time()-p2_rt)>timeout:
@@ -313,7 +306,9 @@ def timeout_check():
                     send_to_webserver()
                     game('p2_timeout')
                     
-                    time.sleep(0.01)
+        finally:
+            lock.release()
+            
 
 
 if __name__ == '__main__':
@@ -323,6 +318,29 @@ if __name__ == '__main__':
     wst.daemon = True
     wst.start()
     wst.join()
-    # timeout= threading.Thread(target=timeout_check)
-    # timeout.start()
-    # StartTime=time.time()/
+    
+
+class setInterval :
+    def __init__(self,interval,action) :
+        self.interval=interval
+        self.action=action
+        self.stopEvent=threading.Event()
+        thread=threading.Thread(target=self.__setInterval)
+        thread.start()
+
+    def __setInterval(self) :
+        nextTime=time.time()+self.interval
+        while not self.stopEvent.wait(nextTime-time.time()) :
+            nextTime+=self.interval
+            self.action()
+
+    def cancel(self) :
+        self.stopEvent.set()
+
+# # start action every 0.6s
+inter=setInterval(0.03,timeout_check)
+print('just after setInterval -> time : {:.1f}s'.format(time.time()-StartTime))
+
+# # will stop interval in 5s
+t=threading.Timer(90,inter.cancel)
+t.start()
