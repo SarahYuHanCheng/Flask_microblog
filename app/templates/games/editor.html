@@ -84,11 +84,12 @@
         editor.setValue(contents[mode]);
         
     }
-    var editor_content=editor.getValue();
+    
     
     
     console.log(editor_content);
     function myFunction() {
+        var editor_content=editor.getValue();
         var commit_msg = document.getElementById('commit_msg').value; 
         console.log(commit_msg); 
             $.getJSON($SCRIPT_ROOT + '/games/commit_code'
