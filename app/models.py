@@ -77,7 +77,7 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
 
 
     def __repr__(self): #__repr__() tells Python how to print objects of this class
-        return '<User {}>'.format(self.username)
+        return '{}'.format(self.id)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
