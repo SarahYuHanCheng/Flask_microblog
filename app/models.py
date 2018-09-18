@@ -227,6 +227,15 @@ class Game(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     game_lib = db.Column(db.String(10240))
     example_code = db.Column(db.String(1024))
+    category = db.Column(db.String(1024))
+    level = db.Column(db.String(1024))
+    player_num = db.Column(db.String(1024))
+    rules = db.Column(db.String(1024))
+    language = db.Column(db.String(1024))
+    game_file = db.Column(db.String(1024))# with pygame
+    
+
+
     # codes = db.relationship('Code', backref='game', lazy='dynamic')
     
     
@@ -252,6 +261,16 @@ class Game(db.Model):
         code_list = Code.query.filter_by(game_id = self.id).order_by(Game.timestamp.desc())
         return code_list
     
+class Room(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    roomname = db.Column(db.String(30))
+    log_id_list = db.Column(db.Integer, db.ForeignKey('log.id'))
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    max_players = db.Column(db.Integer, db.ForeignKey('user.id'))
+    playerlist = db.Column(db.String(512))
+    is_all_in_room = db.Column(db.Integer)
+    audience_list = db.Column(db.String(1024))
+
 
 class Comment(db.Model):
     """docstring for Comment"""
