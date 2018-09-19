@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, current_app, session
 from app import db
-from app.games.forms import CreateGameForm, StartGameForm, CommitCodeForm,CommentCodeForm, OpenRoomForm, LoginForm
+from app.games.forms import CreateGameForm, StartGameForm,CommentCodeForm, OpenRoomForm, LoginForm
 from flask_login import current_user, login_user, logout_user,login_required
 from app.models import User, Comment, Game, Log, Code, Comment
 from werkzeug.urls import url_parse
@@ -154,8 +154,8 @@ def game_view(logId):
 		# if comments.has_next else None
 		# prev_url = url_for('games.game_view',page = comments.prev_num, logId=current_log) \
 		# if comments.has_prev else None
-		return render_template('games/game_view.html',logId=current_log, title='Commit Code',
-                           comment_form=comment_form,comments=comments.items, name=name, room=room) #next_url=next_url, prev_url=prev_url
+		# return render_template('games/game_view.html',logId=current_log, title='Commit Code',
+        #                    comment_form=comment_form,comments=comments.items, name=name, room=room) #next_url=next_url, prev_url=prev_url
 
 	elif comment_form.validate_on_submit():
 		current_code=logId
@@ -163,7 +163,7 @@ def game_view(logId):
 		db.session.add(comment)
 		db.session.commit()
 		flash('Your code have been saved.')
-		return render_template('games/game_view.html',logId=current_log, title='Commit Code',
+	return render_template('games/game_view.html',logId=current_log, title='Commit Code',
                            comment_form=comment_form, name=name, room=room)
 
 
@@ -184,7 +184,7 @@ def commit_code():
 	flash('Your code have been saved.')
 	current_code=code.id
 	print('commit')
-	ws = create_connection("ws://140.116.82.229:8000")
+	ws = create_connection("ws://localhost:6005")
 	print("Sending 'Hello, World'...")
 	ws.send(json.dumps({'code':code.body,'room':'room','logId':current_log,'userId':'12345'}))
 	print("Receiving...")
