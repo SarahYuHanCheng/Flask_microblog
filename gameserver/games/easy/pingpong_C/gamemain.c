@@ -78,29 +78,39 @@ void *myThreadFun(void *vargp)
 }
 
 
-void play(){
-    return;
-}
-void send_to_players(char msg_player){
-    printf("send_to_players");
-    
-    
+
+void send_to_players(char* msg_player, int connectfd){
+    printf("send_to_players: %s",msg_player);
+    char buff[4096];
+    int n;
     char buff_int[512];
 //    sprintf(buff_int, "%d",ball_pos );
 //    strcat(msg_player,"server:");
 //    strcat(msg_player,buff_int);
     
-    if(write(0,msg_player,strlen(msg_player)) == -1){
-        printf("send msg error: %s \n",strerror(errno));
+    if(write(connectfd,msg_player,strlen(msg_player)) == -1){
+        printf("send msg error: %s \n",strerror(errno));  // send paddle move
         exit(1);
     }else{
         printf("send msg successful\n");
+        while((n = read(0,buff,4096)) > 0 ||(n = read(1,buff,4096)) > 0){ // get paddle move
+                buff[n] = '\0';
+                printf("recv msg from client: %s\n",buff);
+                break;
+            }
     }
     return;
 }
-void game(){
-    
-    play();
+void play(char* msg_player, int connectfd){
+     
+    send_to_players(msg_player,connectfd);
+
+    return;
+}
+void game_handle_connection(char* msg_player, int connectfd){
+    while(1){
+        play(msg_player,connectfd);
+    }
     return;
 }
 #define SERV_PORT 8000
@@ -113,7 +123,7 @@ void server(){
     struct sockaddr_in client;
     pid_t childpid;
     socklen_t addrlen;
-    char buff[4096];
+    
     char buff_w[4096];
     listenfd = socket(AF_INET,SOCK_STREAM,0);
     if(listenfd == -1){
@@ -137,7 +147,7 @@ void server(){
     }
     printf("waiting for clinet's request.....\n");
     while(1){
-        int n;
+        // int n;
         addrlen = sizeof(client);
         connectfd = accept(listenfd,(struct sockaddr*)&client,&addrlen);
         if(connectfd == -1){
@@ -148,24 +158,13 @@ void server(){
         }
         if((childpid = fork()) == 0){
             close(listenfd); //why? 0925
-            printf("client from %s\n",inet_ntoa(client.sin_addr));
+            printf("from %s\n",inet_ntoa(client.sin_addr));
             //memset(buff,'\0',sizeof(buff));
-            printf("ready to read\n");
+            fgets(buff_w,2048,stdin);
+            sleep(0.7);
+            game_handle_connection(buff_w,connectfd);
+            // send_to_players(buff_w,connectfd);
             
-            int cnt = 10;
-            while (cnt>0){
-                fgets(buff_w,2048,stdin);
-                if(write(connectfd,buff_w,strlen(buff_w)) == -1){
-                    printf("send msg error: %s \n",strerror(errno));
-                    exit(1);
-                }
-//                send_to_players(buff_w);
-                cnt-=1;
-            }
-            while((n = read(connectfd,buff,4096)) > 0){
-                buff[n] = '\0';
-                printf("recv msg from client: %s\n",buff);
-            }
             printf("end read\n");
             exit(0);
         }else if(childpid < 0)
@@ -177,7 +176,7 @@ void server(){
 }
 int main(){
     init();
-    game();
+    
     pthread_t thread_id;
     printf("Before Thread\n");
     pthread_create(&thread_id, NULL, myThreadFun, NULL);
