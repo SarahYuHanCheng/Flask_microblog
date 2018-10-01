@@ -8,6 +8,7 @@
 #include <sys/errno.h>
 #include <sys/types.h>
 #include <arpa/inet.h>
+#include<time.h>
 #define PORT 8000
 #define BACK_LOG 10
 
@@ -69,7 +70,7 @@ void *myThreadFun(void *vargp)
 {
     int cnt =10000000;
     while (cnt>0) {
-        sleep(0.01);
+        sleep(0.1);
         printf("Check Thread \n");
         cnt-=1;
     }
@@ -92,8 +93,12 @@ void send_to_players(char* msg_player, int connectfd){
         printf("send msg error: %s \n",strerror(errno));  // send paddle move
         exit(1);
     }else{
-        printf("send msg successful\n");
-        while((n = read(0,buff,4096)) > 0 ||(n = read(1,buff,4096)) > 0){ // get paddle move
+        
+        printf("send ");
+        // time_t t;
+        // time(&t);
+        // printf("msg at %s\n",time);
+        while((n = read(connectfd,buff,4096)) > 0){ // get paddle move
                 buff[n] = '\0';
                 printf("recv msg from client: %s\n",buff);
                 break;
@@ -124,7 +129,7 @@ void server(){
     pid_t childpid;
     socklen_t addrlen;
     
-    char buff_w[4096];
+    char buff_w[]="sen to cli ok";
     listenfd = socket(AF_INET,SOCK_STREAM,0);
     if(listenfd == -1){
         perror("socker created failed");
@@ -156,14 +161,13 @@ void server(){
         }else{
             printf("client connected\n");
         }
+        sleep(0.5);// leave time for if condition
         if((childpid = fork()) == 0){
             close(listenfd); //why? 0925
             printf("from %s\n",inet_ntoa(client.sin_addr));
             //memset(buff,'\0',sizeof(buff));
-            fgets(buff_w,2048,stdin);
-            sleep(0.7);
+
             game_handle_connection(buff_w,connectfd);
-            // send_to_players(buff_w,connectfd);
             
             printf("end read\n");
             exit(0);
