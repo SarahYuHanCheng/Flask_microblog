@@ -41,6 +41,7 @@ struct score
 
 int WIDTH = 800;
 int HEIGHT = 400;
+int gametime=30;
 void init(){
     
     // init paddle_A
@@ -77,8 +78,14 @@ void *myThreadFun(void *vargp)
     
     return NULL;
 }
+#define SERV_PORT 8000
+#define MAXNAME 1024
 
-
+int max_clients=2;
+int player_list[2];
+extern int errno;
+int client_list[2];
+const char * del = ",";
 
 void send_to_players(char* msg_player, int connectfd){
     printf("send_to_players: %s",msg_player);
@@ -89,38 +96,73 @@ void send_to_players(char* msg_player, int connectfd){
 //    strcat(msg_player,"server:");
 //    strcat(msg_player,buff_int);
     
-    if(write(connectfd,msg_player,strlen(msg_player)) == -1){
-        printf("send msg error: %s \n",strerror(errno));  // send paddle move
-        exit(1);
-    }else{
-        
-        printf("send ");
-        // time_t t;
-        // time(&t);
-        // printf("msg at %s\n",time);
-        while((n = read(connectfd,buff,4096)) > 0){ // get paddle move
-                buff[n] = '\0';
-                printf("recv msg from client: %s\n",buff);
-                break;
+    for (int i = 0; i < max_clients; i++) {   
+            //if position is empty  
+            if( client_list[i] == 0 ) {  
+               break;   
+            }else{
+
+                if(write(client_list[i],msg_player,strlen(msg_player)) == -1){
+                    printf("send msg error: %s \n",strerror(errno));  
+                }else{
+                    printf("send ball to client %d\n",client_list[i]); // send ball pos ok, reset barrier
+                    for (int i = 0; i < (sizeof(player_list)/sizeof(player_list[0])); i++)   
+                    {   
+                        player_list[i] = 0;   
+                    }   
+                }   
             }
     }
+   
+    while(1){ // get paddle move
+            printf("recv while\n");
+            for (int i = 0; i < max_clients; ++i)
+            {
+                if( client_list[i] != 0 ) {
+                    if((n = read(client_list[i],buff,4096)) > 0){
+                        buff[n] = '\0';
+                        printf("recv msg from client 0: %s\n",buff);
+                        // break;
+                    }
+                }
+            }
+            
+            if((n = read(client_list[0],buff,4096)) > 0){
+                buff[n] = '\0';
+                printf("recv msg from client 0: %s\n",buff);
+                break;
+            }
+        }
+    
     return;
 }
 void play(char* msg_player, int connectfd){
-     
+     printf("play\n");
     send_to_players(msg_player,connectfd);
 
     return;
 }
 void game_handle_connection(char* msg_player, int connectfd){
-    while(1){
+    
+    clock_t start, now,duration;
+    start = clock();
+    
+    duration = ((double)(clock() - start) / CLOCKS_PER_SEC);
+    
+    while(duration <30){
         play(msg_player,connectfd);
+        printf("in handle, duration: %f \n",duration);
     }
     return;
 }
-#define SERV_PORT 8000
-#define MAXNAME 1024
-extern int errno;
+void split_msg(char ** after_split, char * msg, const char* del){
+    char *s = strtok(msg, del);
+    while(s != NULL){
+        *after_split++ = s;
+        s = strtok(NULL, del);
+    }
+}
+
 
 void server(){
     int listenfd,connectfd;
@@ -128,8 +170,10 @@ void server(){
     struct sockaddr_in client;
     pid_t childpid;
     socklen_t addrlen;
+
     
     char buff_w[]="sen to cli ok";
+    char buff[2048];
     listenfd = socket(AF_INET,SOCK_STREAM,0);
     if(listenfd == -1){
         perror("socker created failed");
@@ -151,36 +195,72 @@ void server(){
         exit(1);
     }
     printf("waiting for clinet's request.....\n");
+    char * arr[3];
+    
     while(1){
-        // int n;
+        int n,i;
         addrlen = sizeof(client);
         connectfd = accept(listenfd,(struct sockaddr*)&client,&addrlen);
+        // close(listenfd); //why? 0925
         if(connectfd == -1){
             perror("accept error");
             exit(0);
         }else{
             printf("client connected\n");
         }
-        sleep(0.5);// leave time for if condition
-        if((childpid = fork()) == 0){
-            close(listenfd); //why? 0925
-            printf("from %s\n",inet_ntoa(client.sin_addr));
-            //memset(buff,'\0',sizeof(buff));
-
-            game_handle_connection(buff_w,connectfd);
+        for (i = 0; i < max_clients; i++)   
+        {   
+            //if position is empty  
+            if( client_list[i] == 0 )   
+            {   
+                client_list[i] = connectfd;   
+                printf("Adding to list of sockets as %d\n" , i);   
+                break;   
+            }   
+        }
+        if((n = read(connectfd,buff,4096)) > 0){ // get client info
+            buff[n] = '\0';
+            printf("recv Info from client: %s\n",buff);
+            split_msg(arr,buff,del);
             
-            printf("end read\n");
-            exit(0);
-        }else if(childpid < 0)
-            printf("fork error: %s\n",strerror(errno));
+            if(strtoumax(arr[0],NULL,10)==1){
+                printf("left player in\n");
+                player_list[0]=1;
+                if (player_list[1]!=1){
+                    continue;
+                }
+            }else if(strtoumax(arr[0],NULL,10)==2){
+                printf("right player in\n");
+                player_list[1]=1;
+                if (player_list[0]!=1){//both arrived
+                    continue;
+                }
+            }
+            // break;
+        }   
+       
+            //memset(buff,'\0',sizeof(buff));
+        game_handle_connection(buff_w,connectfd);
+            
+        printf("end game\n");
         close(connectfd);
+        close(listenfd);
+        exit(0);
+        // }else if(childpid < 0)
+        //     printf("fork error: %s\n",strerror(errno));
+        
+        
+
     }
     return ;
     
 }
 int main(){
     init();
-    
+    for (int i = 0; i < max_clients; i++)   
+    {   
+        client_list[i] = 0;   
+    }   
     pthread_t thread_id;
     printf("Before Thread\n");
     pthread_create(&thread_id, NULL, myThreadFun, NULL);
