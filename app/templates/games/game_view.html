@@ -3,12 +3,17 @@
 {% block app_content %}
 
 <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-<!-- <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}"> -->
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+</script>
 
 <script type="text/javascript" charset="utf-8">
 
     var socket;
+    var left_buff=[],right_buff=[],ball_buff=[];
+    var buff_len=20;
+ 
     $(document).ready(function(){
         socket = io.connect('http://' + document.domain + ':' + location.port );
         socket.on('connect', function() {
@@ -21,14 +26,22 @@
         });
         socket.on('gameobject', function(data) {
             var windowHeight = $(window).height();
-            left_update(data.msg[1][1]);
-            right_update(data.msg[2][1]);
-            ball_update(data.msg[0])
+            
+            left_buff.push(data.msg[1][1]);
+            right_buff.push(data.msg[2][1]);
+            ball_buff.push(data.msg[0]);
+            
+            if (ball_buff.length>buff_len){
+                // start_display();  
+                left_update(left_buff.shift());
+                right_update(right_buff.shift());
+                ball_update(ball_buff.shift());
+            
+            }
             function ball_update(position){
-                // console.log(position);
                 var width = $(".ball").outerWidth();
                 var height = $(".ball").outerHeight();
-                $(".ball").css({"left":position[0]-width/2,"top":position[1]-height/2});	
+                $(".ball").css({"left":position[0]-width/2,"top":position[1]-height/2});
             }
             function left_update(position){
             	var height = $(".left-goalkeeper").outerHeight();
@@ -46,6 +59,9 @@
 				if (p_top > topMax) p_top = topMax;
 	            $(".right-goalkeeper").css("top",p_top);	
             }
+            
+
+            
             $('#showgame').val($('#showgame').val() + data.msg[1][1]+ '\n');
             $('#showgame').scrollTop($('#showgame')[0].scrollHeight);
         });
