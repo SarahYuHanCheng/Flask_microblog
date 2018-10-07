@@ -37,16 +37,11 @@ followers = db.Table('followers',
     db.Column('follower_id',db.Integer, db.ForeignKey('user.id')),
     db.Column('followed_id',db.Integer, db.ForeignKey('user.id'))
     )
+players = db.Table('players',
+    db.Column('log_id',db.Integer, db.ForeignKey('log.id')),
+    db.Column('player_id',db.Integer, db.ForeignKey('user.id'))
+    )
 
-# ranks = db.Table('ranks', 
-#     db.Column('player_id',db.Integer, db.ForeignKey('user.id')),
-#     db.Column('game_id',db.Integer, db.ForeignKey('game.id'))
-#     )
-
-
-
-# lm = LoginManager(app)
-# lm.login_view = 'index'
 
 @login.user_loader #@lm.user_loader
 def load_user(id):
@@ -64,7 +59,9 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
     #backref argument defines the name of a field that will be added to the objects of the "many" class that points back at the "one" object.
     #lazy argument defines how the database query for the relationship will be issued
     #mode of dynamic sets up the query to not run until specifically requested
+    code = db.relationship("Code", backref='programmer', lazy='dynamic') #0927
     
+
     # about_me =db.deferred( db.Column(db.String(140)))
     # last_seen = db.deferred(db.Column(db.DateTime, default=datetime.utcnow))
     
@@ -74,6 +71,7 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
         secondaryjoin=(followers.c.followed_id ==id),
         backref=db.backref('followers', lazy='dynamic'),lazy='dynamic'
     )
+
 
 
     def __repr__(self): #__repr__() tells Python how to print objects of this class
@@ -200,24 +198,50 @@ class Log(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     record_content = db.Column(db.String(1024),default='record_content')
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    # user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     winner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
     score = db.Column(db.Integer,default='100200')
-    code_id_list = db.Column(db.Integer, db.ForeignKey('code.id'))
-    # codes = db.relationship('Code', backref='to_log', lazy='dynamic')
-    
+    # code_id_list = db.Column(db.Integer, db.ForeignKey('code.id'))
+
+    codes = db.relationship('Code', backref='to_log', lazy='dynamic')
+    # player_list = db.relationship(
+    #     'User', secondary=players,
+    #     primaryjoin=(players.c.log_id==id),
+    #     secondaryjoin=(players.c.user_id ==id),
+    #     backref=db.backref('players', lazy='dynamic'),lazy='dynamic'
+    # )
+    player_list = db.relationship(
+        'User',secondary=players,
+        backref='logId'
+    )
+
     def __repr__(self):
         return '<Log {}>'.format(self.game_id)
     
-    def get_rank_list(self):
-        game_log = Log.query.filter_by(game_id = self.game_id)
-        # rank_list = 
-        return followed.union(own).order_by(Post.timestamp.desc())
+    def get_rank_list(self,the_game_id):
+        print("get rank")
+        # rank_list = Log.query.with_entities(Log.id,Log.game_id,Log.score).filter_by(game_id = self.game_id).order_by(Log.score.desc()).all()
+        rank_list = Log.query.with_entities(Log.winner_id,Log.game_id,Log.score).filter_by(game_id = the_game_id).order_by(Log.score.desc()).all()
+        return rank_list
 
     def get_codes(self):
-        codes = Code.query.filter_by(log_id = self.id).order_by(Comment.timestamp.desc())
-        return comment_list
+        codes = Code.query.filter_by(log_id = self.id).order_by(Code.timestamp.desc())
+        return codes
+        
+    def get_record_content(self):
+        record_content = Log.query.with_entities(Log.record_content).filter_by(id = self.id)
+        return
+
+    def add_players(self, user):
+        if not self.is_in_playing(user):
+            self.player_list.append(user)
+
+    def is_in_playing(self,user):
+        return self.player_list.filter(players.user_id==user.id).count()>0
+
+
 
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -227,17 +251,19 @@ class Game(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     game_lib = db.Column(db.String(10240))
     example_code = db.Column(db.String(1024))
-    category = db.Column(db.String(1024))
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'),
+        nullable=False)
+    category = db.relationship('Category',
+        backref=db.backref('posts', lazy=True))
+
+
     level = db.Column(db.String(1024))
     player_num = db.Column(db.String(1024))
     rules = db.Column(db.String(1024))
     language = db.Column(db.String(1024))
     game_file = db.Column(db.String(1024))# with pygame
-    
-
 
     # codes = db.relationship('Code', backref='game', lazy='dynamic')
-    
     
     # def __repr__(self):
     #     for x in dir(self):
@@ -260,16 +286,24 @@ class Game(db.Model):
         
         code_list = Code.query.filter_by(game_id = self.id).order_by(Game.timestamp.desc())
         return code_list
-    
+
+class Category(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+
+    def __repr__(self):
+        return '<Category %r>' % self.name
+
+
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    roomname = db.Column(db.String(30))
+    roomname = db.Column(db.String(30),unique=True)
     log_id_list = db.Column(db.Integer, db.ForeignKey('log.id'))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    max_players = db.Column(db.Integer, db.ForeignKey('user.id'))
-    playerlist = db.Column(db.String(512))
-    is_all_in_room = db.Column(db.Integer)
-    audience_list = db.Column(db.String(1024))
+    max_people = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
+    # is_all_in_room = db.Column(db.Integer)
+    # audience_list = db.Column(db.String(1024))
 
 
 class Comment(db.Model):

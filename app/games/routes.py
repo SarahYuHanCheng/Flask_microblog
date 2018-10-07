@@ -140,8 +140,8 @@ def start_game(gameId):
 		current_log=log.id
 		session['log_id'] =log.id
 		flash('Congratulations, now start the game!')
-		return redirect(url_for('games.game_view',logId=current_log))
-	return render_template('games/start_game.html', title='Register', gameId=current_game,form=form)
+		return redirect(url_for('games.game_view',logId=log.id))
+	return render_template('games/start_game.html', title='Register', gameId=gameId,form=form)
 
 # # @bp.route('/codes', methods=['GET','Comment'])
 # # @login_required
@@ -226,10 +226,13 @@ def index():
 @bp.route('/gameover/<logId>', methods=['GET','POST'])
 @login_required
 def gameover(logId):
+	# winner_id
 	# get record_content from gameserver or local var ?
-	Log.query.with_entities(Log.id,Log.record_content).filter_by(id=logId).update(dict(record_content='ooooo'))
+	Log.query.filter_by(id=logId).update(dict(record_content='ooooo',score=300,winner_id=winner_id))
+	log=Log.query.with_entities(Log.game_id).filter_by(id=logId).first()
 	db.session.commit()
 	form = LoginForm()
+	print(Log.get_rank_list(Log,str(log[0])))# log[1]=game_id
 	return render_template('games/index.html', title='Register',form=form)
 
 
