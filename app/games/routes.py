@@ -6,7 +6,8 @@ from app.models import User, Comment, Game, Log, Code, Comment,Room
 from werkzeug.urls import url_parse
 from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
-from websocket import create_connection
+# from websocket import create_connection
+import http.client
 import json, sys
 
 current_game = '3333'
@@ -201,14 +202,18 @@ def commit_code():
 	flash('Your code have been saved.')
 	current_code=code.id
 
-	ws = create_connection("ws://localhost:6005")
-	print("Sending 'Hello, World'...")
-	ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id}))
-	print("Receiving...")
-	result =  ws.recv()
-	print("Received '%s'" % result)
-	ws.close()
-	
+	# ws = create_connection("ws://localhost:6005")
+	# print("Sending 'Hello, World'...")
+	# ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id}))
+	# print("Receiving...")
+	# result =  ws.recv()
+	# print("Received '%s'" % result)
+	# ws.close()
+	conn = http.client.HTTPSConnection("localhost", 6005)
+	conn.request("GET", "/")
+	r1 = conn.getresponse()
+	print(r1.status, r1.reason)
+		
 	return redirect(url_for('.game_view',logId=current_log))
 
 @bp.route('/', methods=['GET', 'POST'])
