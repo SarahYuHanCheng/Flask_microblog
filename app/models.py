@@ -298,9 +298,10 @@ class Category(db.Model):
 class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     roomname = db.Column(db.String(30),unique=True)
-    log_id_list = db.Column(db.Integer, db.ForeignKey('log.id'))
+    
+    # log_id_list = db.Column(db.Integer, db.ForeignKey('log.id'))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    max_people = db.Column(db.Integer, db.ForeignKey('user.id'))
+    # max_people = db.Column(db.Integer, db.ForeignKey('user.id'))
     
     # is_all_in_room = db.Column(db.Integer)
     # audience_list = db.Column(db.String(1024))

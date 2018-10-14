@@ -1,0 +1,32 @@
+<br>
+<h3>room_list</h3>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='list_css.css') }}">
+<div class="container">
+        <div class="modal-content">
+            <div class="panel-body table-responsive">
+                <table class="table ">
+                    <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">RoomID</th>
+                        <th scope="col">RoomName</th>
+                        <th scope="col">目前人數</th>
+                        <th scope="col">人數上限</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for room in rooms %}
+                        <tr>
+                            <th scope="row">1</th>
+                            <td>{{ room.id }}</td>
+                            <td>{{ room.roomname }}</td>
+                            <td>{{ room.roomname }}</td>
+                            <td><a href="{{ url_for('games.game_view',logId=room.id) }}">@mdo</a></td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+</div>

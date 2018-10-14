@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request, current_ap
 from app import db
 from app.games.forms import CreateGameForm, StartGameForm,CommentCodeForm, OpenRoomForm, LoginForm
 from flask_login import current_user, login_user, logout_user,login_required
-from app.models import User, Comment, Game, Log, Code, Comment
+from app.models import User, Comment, Game, Log, Code, Comment,Room
 from werkzeug.urls import url_parse
 from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
@@ -200,6 +200,7 @@ def commit_code():
 	db.session.commit()
 	flash('Your code have been saved.')
 	current_code=code.id
+
 	ws = create_connection("ws://localhost:6005")
 	print("Sending 'Hello, World'...")
 	ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id}))
@@ -221,7 +222,11 @@ def index():
     elif request.method == 'GET':
         form.name.data = session.get('name', '')
         form.room.data = session.get('room', '')
-    return render_template('games/index.html', form=form)
+        rooms = Room.query.order_by(Room.timestamp.desc()).all()
+       
+
+
+    return render_template('games/index/index.html', form=form, rooms=rooms)
 
 @bp.route('/gameover/<logId>', methods=['GET','POST'])
 @login_required
