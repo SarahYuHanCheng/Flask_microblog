@@ -6,7 +6,9 @@ cffi==1.11.5
 chardet==3.0.4
 click==6.7
 cryptography==2.3.1
+dnspython==1.15.0
 dominate==2.3.1
+eventlet==0.24.1
 Flask==1.0.2
 Flask-Bootstrap==3.3.7.1
 Flask-HTTPAuth==3.2.4
@@ -16,12 +18,14 @@ Flask-Migrate==2.2.1
 Flask-SocketIO==3.0.1
 Flask-SQLAlchemy==2.3.2
 Flask-WTF==0.14.2
+greenlet==0.4.15
 idna==2.7
 itsdangerous==0.24
 Jinja2==2.10
 jwt==0.5.4
 Mako==1.0.7
 MarkupSafe==1.0
+monotonic==1.5
 pycparser==2.18
 python-dateutil==2.7.3
 python-dotenv==0.9.1
