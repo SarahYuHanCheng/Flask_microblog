@@ -21,6 +21,5 @@ requests==2.19.1
 six==1.9.0
 socketIO-client-2==0.7.5
 urllib3==1.23
-websocket-client==0.48.0
 websocket-server==0.4
 Werkzeug==0.12.2
