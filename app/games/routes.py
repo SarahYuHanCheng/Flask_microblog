@@ -96,7 +96,7 @@ def add_room():
 			result = {'result': r_query}
 		room_result=json.dumps(result, cls=ComplexEncoder)
 		flash('Congratulations, now start the room!')
-		return redirect(url_for('games.room_wait',form.game_id.data))
+		return redirect(url_for('games.room_wait'))#,form.game_id.data
 		# q_room=Room.query.filter_by(roomname=form.roomname.data).first()
 		# return redirect(url_for('games.room_wait',room=room))
 	elif request.method == 'GET':
