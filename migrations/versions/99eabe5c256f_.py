@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 87c975aca762
+Revision ID: 99eabe5c256f
 Revises: 
-Create Date: 2018-07-24 13:47:32.405361
+Create Date: 2018-08-22 09:14:14.659812
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '87c975aca762'
+revision = '99eabe5c256f'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,8 +23,12 @@ def upgrade():
     sa.Column('body', sa.String(length=1024), nullable=True),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
     sa.Column('commit_msg', sa.String(length=140), nullable=True),
+    sa.Column('game_id', sa.Integer(), nullable=True),
     sa.Column('log_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['game_id'], ['game.id'], ),
     sa.ForeignKeyConstraint(['log_id'], ['log.id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_code_timestamp'), 'code', ['timestamp'], unique=False)
@@ -82,12 +86,20 @@ def upgrade():
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_post_timestamp'), 'post', ['timestamp'], unique=False)
-    op.create_table('ranks',
-    sa.Column('player_id', sa.Integer(), nullable=True),
-    sa.Column('game_id', sa.Integer(), nullable=True),
-    sa.ForeignKeyConstraint(['game_id'], ['game.id'], ),
-    sa.ForeignKeyConstraint(['player_id'], ['user.id'], )
+    op.create_table('room',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('roomname', sa.String(length=30), nullable=True),
+    sa.Column('log_id', sa.Integer(), nullable=True),
+    sa.Column('timestamp', sa.DateTime(), nullable=True),
+    sa.Column('max_players', sa.Integer(), nullable=True),
+    sa.Column('playerlist', sa.String(length=512), nullable=True),
+    sa.Column('is_all_in_room', sa.Integer(), nullable=True),
+    sa.Column('audience_list', sa.String(length=1024), nullable=True),
+    sa.ForeignKeyConstraint(['log_id'], ['log.id'], ),
+    sa.ForeignKeyConstraint(['max_players'], ['user.id'], ),
+    sa.PrimaryKeyConstraint('id')
     )
+    op.create_index(op.f('ix_room_timestamp'), 'room', ['timestamp'], unique=False)
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('token', sa.String(length=32), nullable=True),
@@ -96,8 +108,6 @@ def upgrade():
     sa.Column('username', sa.String(length=64), nullable=True),
     sa.Column('email', sa.String(length=120), nullable=True),
     sa.Column('password_hash', sa.String(length=128), nullable=True),
-    sa.Column('about_me', sa.String(length=140), nullable=True),
-    sa.Column('last_seen', sa.DateTime(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('social_id')
     )
@@ -113,7 +123,8 @@ def downgrade():
     op.drop_index(op.f('ix_user_token'), table_name='user')
     op.drop_index(op.f('ix_user_email'), table_name='user')
     op.drop_table('user')
-    op.drop_table('ranks')
+    op.drop_index(op.f('ix_room_timestamp'), table_name='room')
+    op.drop_table('room')
     op.drop_index(op.f('ix_post_timestamp'), table_name='post')
     op.drop_table('post')
     op.drop_index(op.f('ix_log_timestamp'), table_name='log')

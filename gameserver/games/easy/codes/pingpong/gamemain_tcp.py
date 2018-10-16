@@ -19,9 +19,9 @@ WIDTH = 800
 HEIGHT = 400
 BALL_RADIUS = 20
 PAD_WIDTH = 8
-PAD_HEIGHT = math.ceil(HEIGHT)
-HALF_PAD_WIDTH = PAD_WIDTH // 2
-HALF_PAD_HEIGHT = PAD_HEIGHT // 2
+PAD_HEIGHT = math.ceil(HEIGHT/3)
+HALF_PAD_WIDTH = PAD_WIDTH // 3
+HALF_PAD_HEIGHT = PAD_HEIGHT // 3
 ball = [0, 0]
 ball_vel = [0, 0]
 paddle1_move = 0
@@ -34,7 +34,6 @@ p1_rt=0.0001
 p2_rt=0.0001
 start=0 # control timeout loop
 lock = threading.Lock()
-gametime=0
 
 def ball_init(right):
     global ball, ball_vel
@@ -50,43 +49,33 @@ def ball_init(right):
 def __init__():
     global paddle1, paddle2, paddle1_move, paddle2_move, l_score, r_score  # these are floats
     global score1, score2  # these are ints
-    # print('PAD_HEIGHT ',PAD_HEIGHT)
-    # print('HALF_PAD_HEIGHT ',HALF_PAD_HEIGHT)
-    paddle1 = [HALF_PAD_WIDTH - 1, HEIGHT // 3]
-    paddle2 = [WIDTH + 1 - HALF_PAD_WIDTH, HEIGHT //3]
+    print('PAD_HEIGHT ',PAD_HEIGHT)
+    print('HALF_PAD_HEIGHT ',HALF_PAD_HEIGHT)
+    paddle1 = [HALF_PAD_WIDTH - 1, HEIGHT // 2]
+    paddle2 = [WIDTH + 1 - HALF_PAD_WIDTH, HEIGHT //2]
     l_score = 0
     r_score = 0
-    import os,keyword    
-    print(os.path.abspath(keyword.__file__))
-    print(keyword.kwlist)
-    # keyword.kwlist.append('ball_pos')
-    # print(keyword.kwlist)
-
     if random.randrange(0, 2) == 0:
         ball_init(True)
     else:
         ball_init(False)
 
-def send_to_webserver(instr):
-    global ball,paddle1,paddle2,r_score,l_score,gametime
+def send_to_webserver():
+    global ball,paddle1,paddle2
+    print("sendtoweb")
     with SocketIO('127.0.0.1', 5000, LoggingNamespace) as socketIO:
-        if (instr == 'gameinfo'):
-            socketIO.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2])},room='q1')
-        elif (instr == 'endgame'):
-            print('endgame to web')
-            gametime=time.clock()-gametime
-            socketIO.emit('endgame',{'msg':tuple([l_score,r_score,gametime,'1'])})
+        socketIO.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2])})
 
 
 
 def send_to_Players(instr):
 
     global cnt,barrier,ball,paddle1,paddle2
+    # print('send_to_Players barrier', barrier)
 
     if (instr == 'gameinfo') and barrier==[1,1]:
         cnt+=1
-        msg={'type':'info','ball':ball,'paddle1':paddle1[1],'paddle2':paddle2[1],'cnt':cnt}
-        
+        msg={'type':'info','content':tuple([ball,paddle1[1],paddle2[1],cnt])}
         for cli in range(0,len(playerlist)):
             playerlist[cli].send(json.dumps(msg).encode())
         barrier=[0,0]
@@ -99,11 +88,11 @@ def send_to_Players(instr):
         print('endgame %f'%time.time()) 
     barrier=[0,0]
 
+
 def play():
     try:
         global paddle1, paddle2,paddle1_move,paddle2_move, ball, ball_vel, l_score, r_score, cnt
         global barrier
-
         # print('ball_play: ',ball)
         
         if paddle1[1] > HALF_PAD_HEIGHT and paddle1[1] < HEIGHT - HALF_PAD_HEIGHT:
@@ -160,7 +149,6 @@ def play():
             else:
                 # barrier=1
                 send_to_Players('endgame')
-                send_to_webserver('endgame')#r_score
                 print('ball ',ball)
                 ball_init(False)
 
@@ -179,7 +167,6 @@ def play():
             else:
                 # barrier=1
                 send_to_Players('endgame')
-                send_to_webserver('endgame')
                 print('ball ',ball)
                 ball_init(True)
 
@@ -191,6 +178,7 @@ def play():
 
 def game(where):
     try:
+        print(where)
         play()
     except:
         return
@@ -215,7 +203,7 @@ def handle_client_connection(client_socket):
                 try:
                     barrier[0]=1
                     if barrier[1]==1:
-                        send_to_webserver('gameinfo')
+                        send_to_webserver()
                         game('on_p1')
                 finally:
                     lock.release()
@@ -228,7 +216,7 @@ def handle_client_connection(client_socket):
                 try:
                     barrier[1]=1
                     if barrier[0]==1:
-                        send_to_webserver('gameinfo')
+                        send_to_webserver()
                         game('on_p2')
                 finally:
                     lock.release()
@@ -248,7 +236,6 @@ def handle_client_connection(client_socket):
                         print("p1_start")
                         start=1
                         send_to_Players("gameinfo")
-                        gametime = time.clock()
                 finally:
                     lock.release()
                 
@@ -262,19 +249,15 @@ def handle_client_connection(client_socket):
                         print("p2_start")
                         start=1
                         send_to_Players("gameinfo")
-                        gametime = time.clock()
                 finally:
                     lock.release()
 
         elif msg['type']=='disconnect':
             if msg['who']=='P1':
                 print('P1 leave',cnt)
-                send_to_webserver('endgame')
                 # client_socket.close()
             elif msg['who']=='P2':
                 print('P2 leave',cnt)
-                send_to_webserver('endgame')
-
                 # client_socket.close()
 
         
@@ -297,7 +280,11 @@ def timeout_check():
     global p1_rt, p2_rt,barrier, paddle1_move, paddle2_move, start,playerlist
     
     timeout=0.1
+    # while True:
+        
+        # time.sleep(0.3)   
     if start==1:
+        # print("check")
         lock.acquire()
         try:
             if barrier[0]==0:
@@ -305,12 +292,13 @@ def timeout_check():
                 # print('p1_rt_sub %f p2_rt_sub %f, barrier '%(p1_rt_sub,time.time()-p2_rt)+str(barrier))
                 if p1_rt_sub>timeout:
                     if barrier[1]==0:
-                        timeout+=0.005
+                        timeout+=0.005    
+                        # print('p2 also no response, timeout increase: ',timeout)
                     paddle1_move=0
                     barrier=[1,1]
                     p1_rt=time.time()
                     p2_rt=time.time()
-                    # send_to_webserver() #why timeout out need to send to webserver?
+                    send_to_webserver()
                     game('p1_timeout')
                     
     
@@ -322,7 +310,7 @@ def timeout_check():
                     barrier=[1,1]
                     p1_rt=time.time()
                     p2_rt=time.time()
-                    # send_to_webserver('gameinfo')
+                    send_to_webserver()
                     game('p2_timeout')
                     
         finally:
@@ -337,6 +325,9 @@ if __name__ == '__main__':
     wst.daemon = True
     wst.start()
     wst.join()
+    # timeout= threading.Thread(target=timeout_check)
+    # timeout.start()
+    # StartTime=time.time()/
     
 
 class setInterval :
