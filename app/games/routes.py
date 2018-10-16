@@ -69,12 +69,13 @@ def create_game():
 @bp.route('/add_room', methods=['GET','POST'])
 @login_required
 def add_room():
-	## test gameObj start
-	gameObj = request.args.get('gameObj')
-	loadgame = json.loads(gameObj)
-	lo0=loadgame[0]
-	print('lolo[game_lib]: ',lo0['game_lib'])
-	## test gameObj end
+	if request.args.get('gameObj'):
+		## test gameObj start
+		gameObj = request.args.get('gameObj')
+		loadgame = json.loads(gameObj)
+		lo0=loadgame[0]
+		print('lolo[game_lib]: ',lo0['game_lib'])
+		## test gameObj end
 
 	form = AddRoomForm()
 	if form.validate_on_submit():
