@@ -51,13 +51,12 @@
         {% endif %}
         <input type="submit" value="htmlcommit" onclick="myFunction()">
 </form> -->
-<form method="POST" action="{{ url_for('games.commit_code') }}">
+<form method="POST" >
 <!-- <form method="GET"> -->
-        <input type="text" name="commit_msg" id="commit_msg" placeholder="use html form for all col"">
-        <input type="hidden" name="commit_msg" id="user_id" value="xxx">
-        <input type="hidden" name="commit_msg" id="game_id" value="xxx">
-        <input type="hidden" name="commit_msg" id="log_id" value="xxx">
-        <input type="submit" value="commit"  onclick="myFunction()">
+        <input type="text" name="commit_msg" id="commit_msg" placeholder="use html form for all col">
+        <!-- <input type="hidden" name="commit_msg" id="user_id" value="xxx"> -->
+        <!-- <input type="hidden" name="commit_msg" id="log_id" value="xxx">-->
+        <input type="submit" value="commit"  onclick="myFunction()"> 
 </form>
 <script src="{{
   url_for('static', filename='src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8">
@@ -86,12 +85,10 @@
     }
     
     
-    
-    console.log(editor_content);
     function myFunction() {
+        
         var editor_content=editor.getValue();
         var commit_msg = document.getElementById('commit_msg').value; 
-        console.log(commit_msg); 
             $.getJSON($SCRIPT_ROOT + '/games/commit_code'
               , {
             editor_content: editor_content,
@@ -99,10 +96,55 @@
             }
             , function(data) {
                 var response = data.result;
+                alert("in myfunction");
                 console.log(response);
-                
             });
+            return false;
     }
+    // function myFunction() {
+    //     var editor_content=editor.getValue();
+    //     var commit_msg = document.getElementById('commit_msg').value; 
+            
+    //         if ("WebSocket" in window) {
+    //            console.log("echo");
+               
+    //            // Let us open a web socket
+    //            var ws = new WebSocket("ws://localhost:6005");
+				
+    //            ws.onopen = function() {
+                  
+    //               // Web Socket is connected, send data using send()
+    //               ws.send('Message');
+    //               alert("Message is sent...");
+    //            };
+				
+    //            ws.onmessage = function (evt) { 
+    //               var received_msg = evt.data;
+    //               alert("Message is received...");
+    //            };
+				
+    //            ws.onclose = function() { 
+                  
+    //               // websocket is closed.
+    //               alert("Connection is closed..."); 
+    //            };
+    //         } else {
+              
+    //            // The browser doesn't support WebSocket
+    //            alert("WebSocket NOT supported by your Browser!");
+    //         }
+    //         $.getJSON($SCRIPT_ROOT + '/games/commit_code'
+    //           , {
+    //         editor_content: editor_content,
+    //         commit_msg:commit_msg
+    //         }
+    //         , function(data) {
+    //             var response = data.result;
+    //             alert("in myfunction");
+    //             console.log(response);
+    //         });
+    //      }
+         
 </script>
 <!-- 
 </body>

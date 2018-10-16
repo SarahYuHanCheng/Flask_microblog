@@ -20,13 +20,15 @@
                             <th scope="row">1</th>
                             <td>{{ room.id }}</td>
                             <td>{{ room.roomname }}</td>
-                            <td>{{ room.roomname }}</td>
+                            <td>online_people</td>
+                            <td>max_people</td>
                             <td><a href="{{ url_for('games.game_view',logId=room.id) }}">@mdo</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>
-
+                   
                 </table>
+              
             </div>
         </div>
 </div>
