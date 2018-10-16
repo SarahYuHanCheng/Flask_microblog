@@ -1,20 +1,10 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField, TextAreaField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField, TextAreaField, SelectField, IntegerField
 from wtforms.validators import DataRequired, ValidationError, Length
 from app.models import User, Log, Code
 from flask_login import current_user
 from app.games import current_game,current_log,current_code
 
-class CommitCodeForm(FlaskForm):
-	body = TextAreaField('Code', validators=[DataRequired(),Length(min=0, max=10240)])
-	commit_msg = TextAreaField('Commit msg', validators=[DataRequired(),Length(min=0, max=140)])
-	commit = SubmitField('Commit')
-	log_id = HiddenField('Log id', default=current_log)
-	userId =current_user
-	user_id = HiddenField('User id', default=userId)
-	# def __init__(self, original_log, *args, **kwargs):
-	# 	super(CommitCodeForm, self).__init__(*args, **kwargs)
-	# 	self.original_log = original_log
 
 class StartGameForm(FlaskForm):
 	game_id = HiddenField('Game id', default=current_game)
@@ -32,6 +22,10 @@ class CreateGameForm(FlaskForm):
 	descript = TextAreaField('descript', validators=[DataRequired()])
 	game_lib = TextAreaField('game_lib', validators=[DataRequired()])
 	example_code = TextAreaField('example code', validators=[DataRequired()])
+	language = SelectField(
+		'Programming Language',
+		choices=[('cpp', 'C++'), ('py', 'Python'), ('js', 'Javascript')]
+	)
 	create = SubmitField('Create Game')
 
 class CommentCodeForm(FlaskForm):
@@ -50,7 +44,7 @@ class CommentCodeForm(FlaskForm):
 	# 		user = User.query.filter_by(username=self.username.data).first()
 	# 		if user is not None:
 	# 			raise ValidationError('Please use a different username.')
-class OpenRoomForm(FlaskForm):
+class AddRoomForm(FlaskForm):
     """Accepts a nickname and a room."""
     name = StringField('UserName', validators=[DataRequired()])
     room_name = StringField('GameRoomName', validators=[DataRequired()])
@@ -60,11 +54,24 @@ class OpenRoomForm(FlaskForm):
 		# 	raise ValidationError('Please use a different roomname.')
 
     submit = SubmitField('Enter Gameroom')
+	
+
+  #   def validate_gamename(self, room_name):
+		# room = Room.query.filter_by(room_name=room_name.data).first()
+		# if room is not None:
+		# 	raise ValidationError('Please use a different roomname.')
+	
+def game_list(request, game_category):
+	user = Game.query.filter_by(username=self.username.data).first()
+	form = UserDetails(request.POST, obj=user)
+	form.group_id.choices = [(g.id, g.name) for g in Group.query.order_by('name')]	
+	
+	submit = SubmitField('Enter Gameroom')
 
 
 
 class LoginForm(FlaskForm):
-    """Accepts a nickname and a room."""
-    name = StringField('UserName', validators=[DataRequired()])
-    room = StringField('GameRoomId', validators=[DataRequired()])
-    submit = SubmitField('Enter Chatroom')
+	"""Accepts a nickname and a room."""
+	name = StringField('UserName', validators=[DataRequired()])
+	room = StringField('GameRoomId', validators=[DataRequired()])
+	submit = SubmitField('Enter Chatroom')

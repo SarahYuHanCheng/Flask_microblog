@@ -1,7 +1,7 @@
 from app import create_app, db ,socketio
-from app.models import User, Post
+from app.models import User, Post, Log, Comment, Code
 
-app = create_app(debug=True)
+app = create_app()
 # cli.register(app)
 
 
@@ -10,4 +10,4 @@ def make_shell_context():
 	return {'db':db, 'User':User, 'Post':Post, 'Log':Log, 'Comment':Comment, 'Code':Code}
 	
 if __name__ == '__main__':
-	socketio.run(app)
+	socketio.run(app)#,host='140.116.1.136'
