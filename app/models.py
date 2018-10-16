@@ -41,6 +41,10 @@ players = db.Table('players',
     db.Column('log_id',db.Integer, db.ForeignKey('log.id')),
     db.Column('player_id',db.Integer, db.ForeignKey('user.id'))
     )
+room_logs = db.Table('R_logs',
+    db.Column('room_id',db.Integer, db.ForeignKey('room.id')),
+    db.Column('log_id',db.Integer, db.ForeignKey('log.id'))
+    )
 
 
 @login.user_loader #@lm.user_loader

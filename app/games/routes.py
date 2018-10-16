@@ -81,7 +81,7 @@ def add_room():
 	if form.validate_on_submit():
 		r_query=Room.query.filter_by(roomname=form.room_name.data).first()
 		if r_query is None:
-			room = Room(roomname=form.room_name.data, game_id=form.game_id.data, player_list=form.player_list.data,max_people=form.max_people.data)
+			room = Room(roomname=form.room_name.data)#, game_id=form.game_id.data, player_list=form.player_list.data,max_people=form.max_people.data
 			db.session.add(room)
 			db.session.commit()
 			session['game_id']=form.game_id.data
