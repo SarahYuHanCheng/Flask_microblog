@@ -84,7 +84,7 @@ def add_room():
 			room = Room(roomname=form.room_name.data)#, game_id=form.game_id.data, player_list=form.player_list.data,max_people=form.max_people.data
 			db.session.add(room)
 			db.session.commit()
-			session['room_id']=r_query.id
+			session['room_id']=room.id
 		else:
 			print("please change name")
 
