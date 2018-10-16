@@ -1,6 +1,6 @@
 import socket , time, json
   
-address = ('127.0.0.1', 8000)  # 140.116.82.229
+address = ('127.0.0.1', 8800)  # 140.116.82.229
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
 s.connect(address) 
 
