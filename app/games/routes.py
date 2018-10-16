@@ -1,13 +1,13 @@
 from flask import render_template, flash, redirect, url_for, request, current_app, session
 from app import db
-from app.games.forms import CreateGameForm, StartGameForm,CommentCodeForm, OpenRoomForm, LoginForm
+from app.games.forms import CreateGameForm, StartGameForm,CommentCodeForm, AddRoomForm, LoginForm
 from flask_login import current_user, login_user, logout_user,login_required
 from app.models import User, Comment, Game, Log, Code, Comment,Room
 from werkzeug.urls import url_parse
 from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
-# from websocket import create_connection
-import http.client
+from websocket import create_connection
+# import http.client
 import json, sys
 
 current_game = '3333'
@@ -63,12 +63,12 @@ def create_game():
 		# '''obj_to_json'''end
 
 		flash('Congratulations, the game is created!')
-		return redirect(url_for('games.open_room', gameObj=game_result))
+		return redirect(url_for('games.add_room', gameObj=game_result))
 	return render_template('games/create_game.html', title='Register', form=form)
 
-@bp.route('/open_room', methods=['GET','POST'])
+@bp.route('/add_room', methods=['GET','POST'])
 @login_required
-def open_room():
+def add_room():
 	## test gameObj start
 	gameObj = request.args.get('gameObj')
 	loadgame = json.loads(gameObj)
@@ -76,7 +76,7 @@ def open_room():
 	print('lolo[game_lib]: ',lo0['game_lib'])
 	## test gameObj end
 
-	form = OpenRoomForm()
+	form = AddRoomForm()
 	if form.validate_on_submit():
 		r_query=Room.query.filter_by(roomname=form.room_name.data).first()
 		if r_query is None:
@@ -102,7 +102,7 @@ def open_room():
 	elif request.method == 'GET':
 		form.name.data = session.get('name', '')
         # form.room_id.data = session.get('room_id', '')
-	return render_template('games/open_room.html', title='open_room',form=form)
+	return render_template('games/room/add_room.html', title='add_room',form=form)
 
 @bp.route('/room_wait', methods=['GET','POST'])
 @login_required
@@ -126,7 +126,7 @@ def room_wait():
 		return redirect(url_for('games.start_game',gameId))
 	room_game = Game.query.filter_by(id=room.game_id).first()
 	flash('Congratulations, now start the room!')
-	return render_template('games/room_wait.html', title='room_wait',game_name=room_game.name,game_p_num =room_game.player_num,game_img = room_game.img)
+	return render_template('games/room/room_wait.html', title='room_wait',game_name=room_game.name,game_p_num =room_game.player_num,game_img = room_game.img)
 
 
 @bp.route('/start_game/<int:gameId>', methods=['GET','POST'])
@@ -142,7 +142,7 @@ def start_game(gameId):
 		session['log_id'] =log.id
 		flash('Congratulations, now start the game!')
 		return redirect(url_for('games.game_view',logId=log.id))
-	return render_template('games/start_game.html', title='Register', gameId=gameId,form=form)
+	return render_template('games/room/start_game.html', title='Register', gameId=gameId,form=form)
 
 # # @bp.route('/codes', methods=['GET','Comment'])
 # # @login_required
@@ -181,7 +181,7 @@ def game_view(logId):
 		db.session.add(comment)
 		db.session.commit()
 		flash('Your code have been saved.')
-	return render_template('games/game_view.html',logId=current_log, title='Commit Code',
+	return render_template('games/game/game_view.html',logId=current_log, title='Commit Code',
                            comment_form=comment_form, name=name, room=room)
 
 
@@ -201,19 +201,17 @@ def commit_code():
 	db.session.commit()
 	flash('Your code have been saved.')
 	current_code=code.id
-
-	# ws = create_connection("ws://localhost:6005")
-	# print("Sending 'Hello, World'...")
-	# ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id}))
-	# print("Receiving...")
-	# result =  ws.recv()
-	# print("Received '%s'" % result)
-	# ws.close()
-	conn = http.client.HTTPSConnection("localhost", 6005)
-	conn.request("GET", "/")
-	r1 = conn.getresponse()
-	print(r1.status, r1.reason)
-		
+	ws = create_connection("ws://localhost:6005")
+	print("Sending 'Hello, World'...")
+	ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id}))
+	print("Receiving...")
+	result =  ws.recv()
+	print("Received '%s'" % result)
+	ws.close()
+	# conn = http.client.HTTPSConnection("localhost", 6005)
+	# conn.request("GET", "/")
+	# r1 = conn.getresponse()
+	# print(r1.status, r1.reason)	
 	return redirect(url_for('.game_view',logId=current_log))
 
 @bp.route('/', methods=['GET', 'POST'])
@@ -229,8 +227,6 @@ def index():
         form.room.data = session.get('room', '')
         rooms = Room.query.order_by(Room.timestamp.desc()).all()
        
-
-
     return render_template('games/index/index.html', form=form, rooms=rooms)
 
 @bp.route('/gameover/<logId>', methods=['GET','POST'])
