@@ -84,7 +84,6 @@ def add_room():
 			room = Room(roomname=form.room_name.data)#, game_id=form.game_id.data, player_list=form.player_list.data,max_people=form.max_people.data
 			db.session.add(room)
 			db.session.commit()
-			session['game_id']=form.game_id.data
 			session['room_id']=r_query.id
 		else:
 			print("please change name")
@@ -101,7 +100,7 @@ def add_room():
 		# q_room=Room.query.filter_by(roomname=form.roomname.data).first()
 		# return redirect(url_for('games.room_wait',room=room))
 	elif request.method == 'GET':
-		form.name.data = session.get('name', '')
+		form.room_name.data = session.get('name', '')
         # form.room_id.data = session.get('room_id', '')
 	return render_template('games/room/add_room.html', title='add_room',form=form)
 
