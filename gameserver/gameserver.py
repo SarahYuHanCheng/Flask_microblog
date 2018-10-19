@@ -31,13 +31,12 @@ def message_received(client, server, message):
     
 	language_res = set_language(data['language'])
 	filename=save_code(data['code'],json.dumps(log),data['room'],data['userId'],language_res[1])
-
-	sandbox(language_res[0],filename)
+	sandbox(language_res[0],path,filename)
 	
 
 	
 	
-def sandbox(compiler, filename):
+def sandbox(compiler,path_, filename):
 	# sh test.sh cce238a618539(imageID) python3.7 output.py 
 	import asyncio
 	async def run(cmd):
@@ -54,12 +53,12 @@ def sandbox(compiler, filename):
 		if stderr:
 			print(f'[stderr]\n{stderr.decode()}')
 
-	asyncio.run(run('sh test.sh cce238a618539 '+compiler+' '+filename))# filename include path
+	asyncio.run(run('sh test.sh cce238a618539 '+compiler+' '+path_+' '+filename))
 def save_code(code,log,room,user_id,language):
 	# log=tuple([logId,gameId,p_cnt,game_p_cnt])
 	logdata=json.loads(log)
-	filename="%s%d_%s.py"%(path,logdata[0],user_id)
-	f = open(filename, "w") 
+	filename="%d_%s.py"%(path,logdata[0],user_id)
+	f = open(path+filename, "w") 
 	f.write(code)
 	f.close()
 	
