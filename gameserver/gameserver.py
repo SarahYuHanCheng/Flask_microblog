@@ -100,3 +100,4 @@ server = WebsocketServer(6005, host='127.0.0.1')
 server.set_fn_new_client(new_client)# set callback function
 server.set_fn_message_received(message_received)
 server.run_forever()
+
