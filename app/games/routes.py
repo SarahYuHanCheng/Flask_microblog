@@ -203,7 +203,7 @@ def commit_code():
 	current_code=code.id
 	ws = create_connection("ws://localhost:6005")
 	print("Sending 'Hello, World'...")
-	ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id}))
+	ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id,'language':"python"}))
 	print("Receiving...")
 	result =  ws.recv()
 	print("Received '%s'" % result)
