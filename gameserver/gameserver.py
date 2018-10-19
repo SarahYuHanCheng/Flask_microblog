@@ -57,7 +57,7 @@ def sandbox(compiler,path_, filename):
 def save_code(code,log,room,user_id,language):
 	# log=tuple([logId,gameId,p_cnt,game_p_cnt])
 	logdata=json.loads(log)
-	filename="%d_%s.py"%(path,logdata[0],user_id)
+	filename="%d_%s.py"%(logdata[0],user_id)
 	f = open(path+filename, "w") 
 	f.write(code)
 	f.close()
