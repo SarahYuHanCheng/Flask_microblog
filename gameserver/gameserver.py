@@ -21,12 +21,12 @@ def message_received(client, server, message):
 	user_id_list=[data['userId']]#left,right
 	log=tuple([logId,gameId,p_cnt,game_p_cnt,user_id_list])
 	def set_language(language):
-		switcher = {
-			"C": ["gcc",".c"],
-			"Python": ["python3.7",".py"],
+		compiler = {
+			"c": ["gcc",".c"],
+			"python": ["python3.7",".py"],
 			"shell": ["sh",".sh"]
 		}
-		language_obj = switcher.get(language, "Invalid month")
+		language_obj = compiler.get(language, "Invalid month")
 		return language_obj
     
 	language_res = set_language(data['language'])
