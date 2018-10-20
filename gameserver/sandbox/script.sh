@@ -1,7 +1,9 @@
 image=$1
 compiler=$2
-file=$3
+path=$3
+file=$4
 
 cont=$(docker run -it -d "$image" bash)
-docker cp $file "$cont":/
+
+docker cp $path$file "$cont":/$file
 docker exec -ti "$cont" sh -c "$compiler $file"

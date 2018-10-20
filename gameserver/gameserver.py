@@ -38,33 +38,25 @@ def message_received(client, server, message):
 	
 def sandbox(compiler,path_, filename):
 	# sh test.sh cce238a618539(imageID) python3.7 output.py 
-	import asyncio
-	async def run(cmd):
-		proc = await asyncio.create_subprocess_shell(
-			cmd,
-			stdout=asyncio.subprocess.PIPE,
-			stderr=asyncio.subprocess.PIPE)
+	from subprocess import Popen, PIPE
+	image='cce238a618539'
+	p = Popen('sh script.sh '+image+' '+compiler+' '+path_+' '+filename+'',shell=True, stdout=PIPE, stderr=PIPE)
+	line = p.stdout.readline()
+	while line:
+		print(line.strip())
+		line = p.stdout.readline()
 
-		stdout, stderr = await proc.communicate()
-
-		print(f'[{cmd!r} exited with {proc.returncode}]')
-		if stdout:
-			print(f'[stdout]\n{stdout.decode()}')
-		if stderr:
-			print(f'[stderr]\n{stderr.decode()}')
-
-	asyncio.run(run('sh test.sh cce238a618539 '+compiler+' '+path_+' '+filename))
 def save_code(code,log,room,user_id,language):
 	# log=tuple([logId,gameId,p_cnt,game_p_cnt])
 	logdata=json.loads(log)
-	filename="%d_%s.py"%(logdata[0],user_id)
+	filename="%d_%s%s"%(logdata[0],user_id,language)
 	f = open(path+filename, "w") 
 	f.write(code)
 	f.close()
 	
-	logdata[2]+=1
-	if logdata[2]==logdata[3]:
-		execute_queue(logdata[0],room,logdata[4])
+	# logdata[2]+=1
+	# if logdata[2]==logdata[3]:
+	# 	execute_queue(logdata[0],room,logdata[4])
 	return filename
 	
 
@@ -99,4 +91,3 @@ server = WebsocketServer(6005, host='127.0.0.1')
 server.set_fn_new_client(new_client)# set callback function
 server.set_fn_message_received(message_received)
 server.run_forever()
-
