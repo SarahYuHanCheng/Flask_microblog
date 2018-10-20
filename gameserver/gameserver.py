@@ -27,8 +27,7 @@ def message_received(client, server, message):
 			"shell": ["sh",".sh"]
 		}
 		language_obj = compiler.get(language, "Invalid month")
-		return language_obj
-    
+		return language_obj 
 	language_res = set_language(data['language'])
 	filename=save_code(data['code'],json.dumps(log),data['room'],data['userId'],language_res[1])
 	sandbox(language_res[0],path,filename)
@@ -40,11 +39,26 @@ def sandbox(compiler,path_, filename):
 	# sh test.sh cce238a618539(imageID) python3.7 output.py 
 	from subprocess import Popen, PIPE
 	image='cce238a618539'
-	p = Popen('sh script.sh '+image+' '+compiler+' '+path_+' '+filename+'',shell=True, stdout=PIPE, stderr=PIPE)
-	line = p.stdout.readline()
-	while line:
-		print(line.strip())
-		line = p.stdout.readline()
+	try:
+		p = Popen('sh script.sh '+image+' '+compiler+' '+path_+' '+filename+'',shell=True, stdout=PIPE, stderr=PIPE)
+		stdout, stderr = p.communicate()
+		print('stderr: ',stderr)
+		print('stdout: ',stdout)
+		# if p.stderr.readline():
+		# 	print("error:")
+		# 	line = p.stderr.readline()
+		# 	while line:
+		# 		print(line.strip())
+		# 		line = p.stderr.readline()
+		# else:
+		# 	print("no error:")
+		# 	line = p.stdout.readline()
+		# 	while line:
+		# 		print(line.strip())
+		# 		line = p.stdout.readline()
+	except Exception as e:
+		print('e: ',e)
+	
 
 def save_code(code,log,room,user_id,language):
 	# log=tuple([logId,gameId,p_cnt,game_p_cnt])
