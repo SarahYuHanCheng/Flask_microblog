@@ -12,20 +12,47 @@ class MaxSizeList(object):
 		self.max_length = max_length
 		self.ls = []
 
-	def push(self, st):
+	def push(self, st,qclass):
 		if len(self.ls) == self.max_length:
 			return 1
-		self.ls.append(st)
-		return 0
+		if qclass=='s':
+			servs=self.ls
+			servs.append(st)
+			return 0
+		else:
+		# find same room, pop playerlist, 
+			rooms=self.ls
+			if len(rooms)==0:
+				rooms.append(st)
+				return 0
+			for i in range(0,len(rooms)):#R2
+				if st[0]==rooms[i][0]: #find same room
+					(rooms[i][3]).remove(st[1])
+					st[3]=rooms[i][3]
+					if not servs_full:
+						if len(rooms[i][3])==0:
+							serv_q.push(st,'s')
+							for j in range(i,len(rooms)):
+								if rooms[i][0]==st[0]:
+									serv_q.push(rooms[i],'s')
+									rooms.pop(i)
+								else:
+									return 0
+					else:
+						pass # not add to serv active, wait for serv notify
+					rooms.insert(i+1,st)#add new upload to room
+					return 0
+			rooms.append(st)
+			return 0
 
-	def pop_index(self,i):
-		return self.ls.pop(i)
-
+	def pop_first(self):
+		return self.ls.pop(0)
 	def get_list(self):
 		return self.ls
 
+
 room_q=MaxSizeList(100)
-server_q=MaxSizeList(50)
+serv_q=MaxSizeList(50)
 servs_full=0
 
 def new_client(client, server):
@@ -55,7 +82,7 @@ def message_received(client, server, message):
 	filename=save_code(data['code'],json.dumps(log),data['room'],data['userId'],language_res[1])
 	sandbox(language_res[0],path,filename)
 	
-	if room_q.push([data['room'],data['userId'],path,filename,data['player_list']]):
+	if room_q.push([data['room'],data['userId'],path,filename,data['player_list']],'r'):
 		print("full, need to wait(for a min)")
 	else:
 		print("add to room_q successfully")
