@@ -5,9 +5,32 @@ import time
 import json,sys
 global path
 path="games/easy/codes/"
+
+class MaxSizeList(object):
+
+	def __init__(self, max_length):
+		self.max_length = max_length
+		self.ls = []
+
+	def push(self, st):
+		if len(self.ls) == self.max_length:
+			return 1
+		self.ls.append(st)
+		return 0
+
+	def pop_index(self,i):
+		return self.ls.pop(i)
+
+	def get_list(self):
+		return self.ls
+
+room_q=MaxSizeList(100)
+server_q=MaxSizeList(50)
+servs_full=0
+
 def new_client(client, server):
-    msg1="Hey all, a new client has joined us"
-    server.send_message(client,msg1)
+	msg1="Hey all, a new client has joined us"
+	server.send_message(client,msg1)
 
 def message_received(client, server, message):
 	#msg include code room logId language(compiler, Filename Extension)
@@ -32,9 +55,17 @@ def message_received(client, server, message):
 	filename=save_code(data['code'],json.dumps(log),data['room'],data['userId'],language_res[1])
 	sandbox(language_res[0],path,filename)
 	
+	if room_q.push([data['room'],data['userId'],path,filename,data['player_list']]):
+		print("full, need to wait(for a min)")
+	else:
+		print("add to room_q successfully")
+					
+	
 
 	
-	
+def server_q_next(room,path_, filename):
+	pass
+
 def sandbox(compiler,path_, filename):
 	# sh test.sh cce238a618539(imageID) python3.7 output.py 
 	from subprocess import Popen, PIPE
