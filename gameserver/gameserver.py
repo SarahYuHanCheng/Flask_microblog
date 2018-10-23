@@ -7,6 +7,7 @@ global path
 path="games/easy/codes/"
 
 servs_full=0
+servs_full_right=1
 
 def movetoserv_q(i,st):
 	room_list=room_q.get_list()
@@ -24,9 +25,12 @@ class MaxSizeList(object):
 		self.ls = []
 
 	def push(self, st,qclass):
-		global servs_full
+		global servs_full,servs_full_right
 		if len(self.ls) == self.max_length:
 			if qclass=='s':
+				while not servs_full_right:
+					pass
+				servs_full_right=0 # lock for others
 				servs_full=1
 			return 1
 		if qclass=='s':
@@ -43,6 +47,9 @@ class MaxSizeList(object):
 				if st[0]==rooms[i][0]: #find same room
 					(rooms[i][3]).remove(st[1])
 					st[3]=rooms[i][3]
+					while not servs_full_right:
+						pass
+					servs_full_right=0
 					if not servs_full:
 						if len(rooms[i][3])==0: #all arrived
 							movetoserv_q(i,st)
@@ -55,8 +62,12 @@ class MaxSizeList(object):
 			return 0
 
 	def pop_first(self,qclass):
-		global servs_full
+		global servs_full, servs_full_right
+		while not servs_full_right:
+			pass
+		servs_full_right=0
 		if qclass=='s' and servs_full:
+			servs_full_right=0
 			s_pop=self.ls.pop(0) # need pop first, cause push to it later
 			rs=room_q.get_list()
 			for i in range(0,len(rs)):#find the all arrived room
@@ -64,6 +75,7 @@ class MaxSizeList(object):
 					movetoserv_q(i,rs[i])
 					return s_pop
 			servs_full=0
+			servs_full_right=1
 			return s_pop
 		return self.ls.pop(0) #qclass==r
 	def get_list(self):
@@ -114,18 +126,6 @@ def sandbox(compiler,path_, filename):
 		stdout, stderr = p.communicate()
 		print('stderr: ',stderr)
 		print('stdout: ',stdout)
-		# if p.stderr.readline():
-		# 	print("error:")
-		# 	line = p.stderr.readline()
-		# 	while line:
-		# 		print(line.strip())
-		# 		line = p.stderr.readline()
-		# else:
-		# 	print("no error:")
-		# 	line = p.stdout.readline()
-		# 	while line:
-		# 		print(line.strip())
-		# 		line = p.stdout.readline()
 	except Exception as e:
 		print('e: ',e)
 	
@@ -145,29 +145,6 @@ def save_code(code,log,room,user_id,language):
 	
 
 
-def execute_queue(logId,room,user_id_list):
-	roomname=room.split()
-	
-	if logId :
-		#left first
-		proc1 = subprocess.Popen(
-			['python', '%s%d_%s.py'%(path,logId,user_id_list[0])],
-			stdout=subprocess.PIPE)
-		# proc2 = subprocess.Popen(
-		# 	['python', '%s%d_%s.py'%(path,logId,user_id)],
-		# 	stdout=subprocess.PIPE)	
-		proc3 = subprocess.Popen(
-			['python', '%spingpong.py'%path]+ roomname,
-			stdout=subprocess.PIPE)
-		out1, err1 = proc1.communicate()
-		if(err1 is not None):
-			print(err1.decode('utf-8'))
-		# out2, err2 = proc2.communicate()
-		# if(err2 is not None):
-		# 	print(err2.decode('utf-8'))
-		out3, err3 = proc3.communicate()
-		if(err3 is not None):
-			print(err3.decode('utf-8'))
 
 
 
