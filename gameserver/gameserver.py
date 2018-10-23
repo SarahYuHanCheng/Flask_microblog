@@ -6,14 +6,28 @@ import json,sys
 global path
 path="games/easy/codes/"
 
-class MaxSizeList(object):
+servs_full=0
 
+def movetoserv_q(i,st):
+	room_list=room_q.get_list()
+	serv_q.push(st,'s')
+	for j in range(i,len(room_list)): #find the same room
+		if room_list[i][0]==st[0]:
+			serv_q.push(room_list[i],'s')
+			room_list.pop(i)
+			
+
+class MaxSizeList(object):
+	
 	def __init__(self, max_length):
 		self.max_length = max_length
 		self.ls = []
 
 	def push(self, st,qclass):
+		global servs_full
 		if len(self.ls) == self.max_length:
+			if qclass=='s':
+				servs_full=1
 			return 1
 		if qclass=='s':
 			servs=self.ls
@@ -30,30 +44,33 @@ class MaxSizeList(object):
 					(rooms[i][3]).remove(st[1])
 					st[3]=rooms[i][3]
 					if not servs_full:
-						if len(rooms[i][3])==0:
-							serv_q.push(st,'s')
-							for j in range(i,len(rooms)):
-								if rooms[i][0]==st[0]:
-									serv_q.push(rooms[i],'s')
-									rooms.pop(i)
-								else:
-									return 0
+						if len(rooms[i][3])==0: #all arrived
+							movetoserv_q(i,st)
+						return 0
 					else:
+						rooms.insert(i+1,st)#add new upload to room
 						pass # not add to serv active, wait for serv notify
-					rooms.insert(i+1,st)#add new upload to room
 					return 0
 			rooms.append(st)
 			return 0
 
-	def pop_first(self):
-		return self.ls.pop(0)
+	def pop_first(self,qclass):
+		global servs_full
+		if qclass=='s' and servs_full:
+			s_pop=self.ls.pop(0) # need pop first, cause push to it later
+			rs=room_q.get_list()
+			for i in range(0,len(rs)):#find the all arrived room
+				if len(rs[i][3])==0:
+					movetoserv_q(i,rs[i])
+					return s_pop
+			servs_full=0
+			return s_pop
+		return self.ls.pop(0) #qclass==r
 	def get_list(self):
 		return self.ls
 
-
 room_q=MaxSizeList(100)
 serv_q=MaxSizeList(50)
-servs_full=0
 
 def new_client(client, server):
 	msg1="Hey all, a new client has joined us"
@@ -87,11 +104,6 @@ def message_received(client, server, message):
 	else:
 		print("add to room_q successfully")
 					
-	
-
-	
-def server_q_next(room,path_, filename):
-	pass
 
 def sandbox(compiler,path_, filename):
 	# sh test.sh cce238a618539(imageID) python3.7 output.py 
