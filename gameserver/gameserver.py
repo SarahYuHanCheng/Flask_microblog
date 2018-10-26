@@ -1,22 +1,33 @@
 import logging
 from websocket_server import WebsocketServer
-import subprocess
+
 import time
 import json,sys
 global path
 path="games/easy/codes/"
-
+game_exec_id=0
 servs_full=0
 servs_full_right=1
 
 def movetoserv_q(i,st):
+	
 	room_list=room_q.get_list()
 	serv_q.push(st,'s')
 	for j in range(i,len(room_list)): #find the same room
 		if room_list[i][0]==st[0]:
 			serv_q.push(room_list[i],'s')
 			room_list.pop(i)
-			
+	servers_exec(serv_q.pop_first('s'))
+
+def servers_exec(st):
+	global game_exec_id
+	# st=[data['room'],data['userId'],path,filename,data['player_list']]
+	# logId?, room, user_id_list
+	code = (open(""+st[2]+st[3]))
+	print(code)
+	json.dumps({'room_id':st[0],'player_id':st[1],'code':editor_content,'logId':st[2],'language':"python",}
+	server.send_message(game_exec_id,st)
+
 
 class MaxSizeList(object):
 	
@@ -80,19 +91,25 @@ class MaxSizeList(object):
 		return self.ls.pop(0) #qclass==r
 	def get_list(self):
 		return self.ls
+	
 
 room_q=MaxSizeList(100)
 serv_q=MaxSizeList(50)
 
 def new_client(client, server):
 	msg1="Hey all, a new client has joined us"
-	server.send_message(client,msg1)
+	# server.send_message(client,msg1)
+
 
 def message_received(client, server, message):
 	#msg include code room logId language(compiler, Filename Extension)
 	print("Client(%d) said: %s" % (client['id'], message))
+	global game_exec_id
 	data = json.loads(message)
-	print(data['room'])
+	if data['from']=='servers':
+		game_exec_id =client['id']
+	elif data['from']=='game':
+		print("game")
 	logId=1
 	gameId=1
 	p_cnt=0#data['logId']
@@ -109,12 +126,14 @@ def message_received(client, server, message):
 		return language_obj 
 	language_res = set_language(data['language'])
 	filename=save_code(data['code'],json.dumps(log),data['room'],data['userId'],language_res[1])
-	sandbox(language_res[0],path,filename)
-	
-	if room_q.push([data['room'],data['userId'],path,filename,data['player_list']],'r'):
-		print("full, need to wait(for a min)")
-	else:
-		print("add to room_q successfully")
+	# path 
+	# filename include .xxx
+	if sandbox(language_res[0],path,filename):
+		if room_q.push([data['room'],data['userId'],logId,path,filename,data['player_list']],'r'):
+			print("full, need to wait(for a min)")
+		else:
+			print("add to room_q successfully")
+		
 					
 
 def sandbox(compiler,path_, filename):
@@ -126,14 +145,16 @@ def sandbox(compiler,path_, filename):
 		stdout, stderr = p.communicate()
 		print('stderr: ',stderr)
 		print('stdout: ',stdout)
+		return 0
 	except Exception as e:
 		print('e: ',e)
+		return 1
 	
 
 def save_code(code,log,room,user_id,language):
 	# log=tuple([logId,gameId,p_cnt,game_p_cnt])
 	logdata=json.loads(log)
-	filename="%d_%s%s"%(logdata[0],user_id,language)
+	filename="%d_%s%s"%(logdata[0],user_id,language)#logId,userId
 	f = open(path+filename, "w") 
 	f.write(code)
 	f.close()
