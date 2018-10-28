@@ -9,7 +9,15 @@ game_exec_id=0
 servs_full=0
 servs_full_right=1
 
+
+server = WebsocketServer(6005, host='127.0.0.1')
+server.set_fn_new_client(new_client)# set callback function
+server.set_fn_message_received(message_received)
+server.run_forever()
+
 def movetoserv_q(i,st):
+	# 將room_q中第i個(到齊的)element移到 serv_q, 並執行 serv_q的第一個 element
+	# 並比對i後面的 element是否為同一房間,是的話也同上一步驟
 	
 	room_list=room_q.get_list()
 	serv_q.push(st,'s')
@@ -17,20 +25,25 @@ def movetoserv_q(i,st):
 		if room_list[i][0]==st[0]:
 			serv_q.push(room_list[i],'s')
 			room_list.pop(i)
-	servers_exec(serv_q.pop_first('s'))
+			game_exec(serv_q.pop_first('s'))
 
-def servers_exec(st):
-	global game_exec_id
-	# st=[data['room'],data['userId'],path,filename,data['player_list']]
-	# logId?, room, user_id_list
+def game_exec(st):
+	# 接收 serv_q的 element, 用 ws傳給 exec主機
+	# (game_exec_id 為 exec主機在 ws server上註冊的 client_id)
+	# 將 element解開逐一放進json dict裡, 增加 code
+	# {room_id, log_id, user_id, compiler, code, path, filename}
+	global game_exec_id,server
 	code = (open(""+st[2]+st[3]))
 	print(code)
-	json.dumps({'room_id':st[0],'player_id':st[1],'code':editor_content,'logId':st[2],'language':"python",}
-	server.send_message(game_exec_id,st)
+	packet=json.dumps({'room_id':st[0],'log_id':st[1],'user_id':st[2],'compiler':st[3],'code':code,'path':st[4],'filename':st[5]}
+	# recv_msg['room'],recv_msg['userId'],recv_msg['compiler'],recv_msg['path'],recv_msg['filename']
+	server.send_message(game_exec_id,packet)
 
 
 class MaxSizeList(object):
-	
+	# room_q, serv_q皆使用此 list, push和 pop_first會依身份有不同的操作
+	# push:同room會放一起,同時檢查是否到齊, 若到齊會將該room的第一個 element丟到 serv_q,(若 serv_q已滿,無法送出, 則將這些已到齊的 element移到room_q的第一位置)
+	# pop_first: 1. game_exec呼叫serv_q的 pop 2. serv_q有空位, call room_q的pop
 	def __init__(self, max_length):
 		self.max_length = max_length
 		self.ls = []
@@ -102,6 +115,11 @@ def new_client(client, server):
 
 
 def message_received(client, server, message):
+	# ws server的client 來源有2: 1. webserver 2. gamemain
+	# 1. webserver: 先經過 sandbox, 將結果回傳給user, 確定要使用再排進 room_q
+	# 2. gamemain: 某 room遊戲結束, 通知 game_exec kill 該 room的 dc container, 並執行< movetoserv_q >;
+	# 續上：同時傳遞遊戲結果的訊息給 webserver (games/event.py 接收)
+
 	#msg include code room logId language(compiler, Filename Extension)
 	print("Client(%d) said: %s" % (client['id'], message))
 	global game_exec_id
@@ -129,7 +147,7 @@ def message_received(client, server, message):
 	# path 
 	# filename include .xxx
 	if sandbox(language_res[0],path,filename):
-		if room_q.push([data['room'],data['userId'],logId,path,filename,data['player_list']],'r'):
+		if room_q.push([data['room'],logId,data['userId'],language_res[0],path,filename,data['player_list']],'r'):
 			print("full, need to wait(for a min)")
 		else:
 			print("add to room_q successfully")
@@ -137,7 +155,9 @@ def message_received(client, server, message):
 					
 
 def sandbox(compiler,path_, filename):
+	# 用 subprocess將預測試的檔名當參數執行 script.sh, 使產生 docker container 來驗證程式碼,指令如下 
 	# sh test.sh cce238a618539(imageID) python3.7 output.py 
+	
 	from subprocess import Popen, PIPE
 	image='cce238a618539'
 	try:
@@ -152,6 +172,7 @@ def sandbox(compiler,path_, filename):
 	
 
 def save_code(code,log,room,user_id,language):
+	# 在呼叫 sandbox前 將程式碼依遊戲人數？分類？為路徑 存於 gameserver並回傳檔名
 	# log=tuple([logId,gameId,p_cnt,game_p_cnt])
 	logdata=json.loads(log)
 	filename="%d_%s%s"%(logdata[0],user_id,language)#logId,userId
@@ -169,7 +190,3 @@ def save_code(code,log,room,user_id,language):
 
 
 
-server = WebsocketServer(6005, host='127.0.0.1')
-server.set_fn_new_client(new_client)# set callback function
-server.set_fn_message_received(message_received)
-server.run_forever()

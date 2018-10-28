@@ -2,33 +2,25 @@ from flask import session,redirect, url_for
 from flask_socketio import emit, join_room, leave_room
 from .. import socketio
 
-# @socketio.on('my event', namespace='/test')
-# def test_message(message):
-#     emit('my response', {'data': message['data']})
-
-# @socketio.on('my broadcast event', namespace='/test')
-# def test_message(message):
-#     emit('my response', {'data': message['data']}, broadcast=True)
-
-@socketio.on('endgame') # tuple([l_score,r_score,gametime])
+@socketio.on('score') 
 def game_over(message):
+    # msg：tuple([l_score,r_score,gametime])??
+    # 使 webserver切換至 gameover路由
     print('end game',message['msg'])
-    # emit('gameresult', {'msg': message['msg']},room='q1')
-    return redirect(url_for('games.gameover',logId= message['msg'][3]))
-cnt=0
+    return redirect(url_for('games.gameover',room= message['msg'][3],msg= message['msg'])
+
 @socketio.on('connectfromgame')
 def test_connect(message):
+    # 接收來自 exec主機 gamemain傳送的訊息並再傳至browser
+    # msg:??
     global cnt
     cnt+=1
     print(cnt)
-    emit('gameobject', {'msg': message['msg']},room='q1')
-
-# @socketio.on('disconnect', namespace='/test')
-# def test_disconnect():
-#     print('Client disconnected')
+    emit('gameobject', {'msg': message['msg']},room= message['msg'][3])
 
 @socketio.on('joined' )
 def joined(message):
+    # 一個房間會有 n+1的連線數(n個 browser, 一個gamemain)
     """Sent by clients when they enter a room.
     A status message is broadcast to all people in the room."""
     room = session.get('room')

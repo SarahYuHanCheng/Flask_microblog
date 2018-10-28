@@ -7,15 +7,16 @@ from werkzeug.urls import url_parse
 from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
 from websocket import create_connection
-# import http.client
 import json, sys
 
 current_game = '3333'
 # print(current_log)
 class ComplexDecoder(json.JSONDecoder):
+	# 目前還沒用到
 	def default(obj):
 		return json.JSONDecoder.default(obj)
 class ComplexEncoder(json.JSONEncoder):
+	# 解開query時用到
 	def default(self, obj):
 		import datetime
 		if isinstance(obj, datetime.datetime):
@@ -26,6 +27,7 @@ class ComplexEncoder(json.JSONEncoder):
 			return json.JSONEncoder.default(self, obj)
 
 def obj_to_json(obj_list):
+	# query出來之後 轉 json
 	out = [q.__dict__ for q in obj_list]
 	for objs, instance in zip(out, obj_list):
 		for obj in objs.values():
@@ -43,14 +45,13 @@ def obj_to_json(obj_list):
 @bp.route('/create_game', methods=['GET', 'POST'])
 @login_required
 def create_game():
+	# 新增遊戲
 	form = CreateGameForm()
 	if form.validate_on_submit():
 		game = Game(user_id=form.user_id.data,gamename=form.gamename.data,descript=form.descript.data, game_lib=form.game_lib.data, example_code=form.example_code.data)
 		db.session.add(game)
 		db.session.commit()
 
-		# current_game=game
-		# print(current_game)
 		# '''obj_to_json'''
 		g_query=Game.query.filter_by(gamename=form.gamename.data).first()
 		if isinstance(g_query, list):
@@ -69,6 +70,7 @@ def create_game():
 @bp.route('/add_room', methods=['GET','POST'])
 @login_required
 def add_room():
+	# 開房間
 	if request.args.get('gameObj'):
 		## test gameObj start
 		gameObj = request.args.get('gameObj')
@@ -97,16 +99,14 @@ def add_room():
 		room_result=json.dumps(result, cls=ComplexEncoder)
 		flash('Congratulations, now start the room!')
 		return redirect(url_for('games.room_wait'))#,form.game_id.data
-		# q_room=Room.query.filter_by(roomname=form.roomname.data).first()
-		# return redirect(url_for('games.room_wait',room=room))
 	elif request.method == 'GET':
 		form.room_name.data = session.get('name', '')
-        # form.room_id.data = session.get('room_id', '')
 	return render_template('games/room/add_room.html', title='add_room',form=form)
 
 @bp.route('/room_wait', methods=['GET','POST'])
 @login_required
 def room_wait():
+	# 等待玩家到齊
 	room_id=session.get('room_id')
 	
 	room=Room.query.filter_by(id=room_id).first()
@@ -119,8 +119,6 @@ def room_wait():
 
 	is_all_in_room =len(player_list)
 	print(is_all_in_room)
-    # form.room.data = session.get('room', '')
-	print(current_room.id) #有效？
 	gameId = request.args.get('gameId', 1, type=int)
 	if is_all_in_room:
 		return redirect(url_for('games.start_game',gameId))
@@ -132,9 +130,9 @@ def room_wait():
 @bp.route('/start_game/<int:gameId>', methods=['GET','POST'])
 @login_required
 def start_game(gameId):
+	# 開始遊戲 切換到 gameview
 	form = StartGameForm()
 	if form.validate_on_submit():
-		# game_id=session.get('game_id')
 		log = Log(game_id=gameId)
 		db.session.add(log)
 		db.session.commit()
@@ -144,16 +142,11 @@ def start_game(gameId):
 		return redirect(url_for('games.game_view',logId=log.id))
 	return render_template('games/room/start_game.html', title='Register', gameId=gameId,form=form)
 
-# # @bp.route('/codes', methods=['GET','Comment'])
-# # @login_required
-# # def commit_code():
 
-# # 	return render_template('games/commit_code.html', title='Commit Code',
-# #                            form=form,codeId='01')
 @bp.route('/game_view/<int:logId>', methods=['GET','POST'])
 @login_required
 def game_view(logId):
-
+	# 比賽畫面
 	comment_form = CommentCodeForm() #current_log.id
 	name = session.get('name', '')
 	room = session.get('room', '')
@@ -188,12 +181,12 @@ def game_view(logId):
 @bp.route('/commit_code', methods=['GET','POST'])
 @login_required
 def commit_code():
+	# 用ws 提交程式碼給 gameserver
 	print("commit")
 	name = session.get('name', '')
 	room = session.get('room', '')# for gameserver to save exec code, not for db-code(no need to save room)  
 	log_id = session.get('logId', '')
-	# if name == '' or room == '':
-	# 		return redirect(url_for('.index'))
+
 	editor_content = request.args.get('editor_content', 0, type=str)
 	commit_msg = request.args.get('commit_msg', 0, type=str)
 	code = Code(log_id=log_id, body=editor_content, commit_msg=commit_msg,game_id=name,user_id=current_user.id)
@@ -203,19 +196,16 @@ def commit_code():
 	current_code=code.id
 	ws = create_connection("ws://localhost:6005")
 	print("Sending 'Hello, World'...")
-	ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id,'language':"python"}))
-	print("Receiving...")
+	ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id,'language':"python",'player_list':['111','222']}))
 	result =  ws.recv()
 	print("Received '%s'" % result)
 	ws.close()
-	# conn = http.client.HTTPSConnection("localhost", 6005)
-	# conn.request("GET", "/")
-	# r1 = conn.getresponse()
-	# print(r1.status, r1.reason)	
+	
 	return redirect(url_for('.game_view',logId=current_log))
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
+	# 主畫面會有很多tab(News, NewsGame, HotGames,Discuss, Rooms)
     """Login form to enter a room."""
     form = LoginForm()
     if form.validate_on_submit():
@@ -232,33 +222,12 @@ def index():
 @bp.route('/gameover/<logId>', methods=['GET','POST'])
 @login_required
 def gameover(logId):
-	# winner_id
+	# event.py收到gameserver的 'score'訊息後, redirect到此遊戲結束的 route, update log, 顯示分數
 	# get record_content from gameserver or local var ?
-	Log.query.filter_by(id=logId).update(dict(record_content='ooooo',score=300,winner_id=winner_id))
+	# record display in many jpeg 為學習影像處理存擋, 也用來做回顧播放
+	Log.query.filter_by(id=logId).update(dict(record_content=msg[1],score=msg[2],winner_id=msg[3]))
+	# Log.query.filter_by(id=logId).update(dict(record_content='ooooo',score=300,winner_id=winner_id))
 	log=Log.query.with_entities(Log.game_id).filter_by(id=logId).first()
 	db.session.commit()
-	form = LoginForm()
 	print(Log.get_rank_list(Log,str(log[0])))# log[1]=game_id
 	return render_template('games/index.html', title='Register',form=form)
-
-
-# @bp.route('/logs/<int:logId>',methods=['GET'])
-# def get_game_result(logId): # in game view, replace commit_code
-
-# 	if form.validate_on_submit():
-# 		log = Log.query.filter_by(id=form.log_id.data).first()
-# 		if log:
-# 			flash('show log')
-# 		else:
-# 			flash('this round is deleted')
-# 		return redirect(url_for('games.game_view'))
-# 	return render_template('games/logs.html', title='Game Log',logId=current_log)
-
-# @bp.route('/logs/<int:logId>', methods=['DELETE'])
-# @login_required
-# def unsave_log(token):
-# 	log = Log.query.filter_by(id=form.log_id.data).first()
-# 	db.session.delete(log)
-# 	db.session.commit()
-# 	flash('Your log has been deleted.')
-# 	return render_template('games/logs.html', logId=current_logs)
