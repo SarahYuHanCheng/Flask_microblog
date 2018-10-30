@@ -9,7 +9,6 @@ game_exec_id=0
 servs_full=0
 servs_full_right=1
 
-
 server = WebsocketServer(6005, host='127.0.0.1')
 
 def movetoserv_q(i,st):
@@ -64,39 +63,48 @@ class MaxSizeList(object):
 				return 0
 			for i in range(0,len(rooms)):#R2
 				if st[0]==rooms[i][0]: #find same room
-					(rooms[i][3]).remove(st[1])
-					st[3]=rooms[i][3]
+					print('rooms[i][-1]:',rooms[i][-1]) # rooms[i][-1]== player_list
+					print('st[1]:',st[1])
+					(rooms[i][-1]).remove(st[1])
+					st[-1]=rooms[i][-1]
 					while not servs_full_right:
 						pass
 					servs_full_right=0
 					if not servs_full:
-						if len(rooms[i][3])==0: #all arrived
+						if len(rooms[i][-1])==0: #all arrived
 							movetoserv_q(i,st)
 						return 0
 					else:
 						rooms.insert(i+1,st)#add new upload to room
 						pass # not add to serv active, wait for serv notify
 					return 0
+				else:
+					pass
 			rooms.append(st)
 			return 0
 
 	def pop_first(self,qclass):
+		# room: 目前不會有此情況
+		# serv:
 		global servs_full, servs_full_right
-		while not servs_full_right:
+		while not servs_full_right: # 沒有serv_q的存取權
 			pass
-		servs_full_right=0
-		if qclass=='s' and servs_full:
+		servs_full_right=0 # 拿到serv_q的存取權, 將其設為 0不讓其他人(push)存取
+		if qclass=='s' and servs_full: # 有room 遊戲結束, serv_q pop後,接收一個room_q
 			servs_full_right=0
 			s_pop=self.ls.pop(0) # need pop first, cause push to it later
 			rs=room_q.get_list()
-			for i in range(0,len(rs)):#find the all arrived room
+			for i in range(0,len(rs)):#find the all arrived room, 1030 看不懂為什麼是 room_q?
 				if len(rs[i][3])==0:
 					movetoserv_q(i,rs[i])
 					return s_pop
 			servs_full=0
 			servs_full_right=1
 			return s_pop
-		return self.ls.pop(0) #qclass==r
+		elif qclass=='s': # serv_q 沒有滿, 代表room_q沒有已到齊的room要進 serv_q而排隊
+			s_pop=self.ls.pop(0)
+		else:
+			return self.ls.pop(0) #qclass==r 目前不會有此情況
 	def get_list(self):
 		return self.ls
 	
@@ -127,11 +135,37 @@ def save_code(code,room_name,user_id,game_lib_id,language,path):
 		return filename
 	f.close()
 	return filename
+def set_language(language):
+	compiler = {
+		"c": ["gcc",".c"],
+		"python": ["python3.7",".py"],
+		"shell": ["sh",".sh"]
+	}
+	language_obj = compiler.get(language, "Invalid month")
+	return language_obj 
 
+def code_address(server,data):
+	# 先經過 sandbox, 將結果回傳給user, (確定要使用)再排進 room_q
+	global webserver_id,room_q
+	language_res = set_language(data['language'])
+	
+	filename=save_code(data['code'],data['room_name'],data['user_id'],data['game_lib_id'],language_res[1],path)
+	# filename include .xxx
+	test_result = sandbox(language_res[0],path,filename)
+
+	if test_result[0]:
+		server.send_message(webserver_id,test_result[1])
+		try:
+			room_q.push([data['room_name'],data['user_id'],data['game_lib_id'],language_res[0],path,filename,data['player_list']],'r')
+			print("add to room_q successfully")
+		except Exception as e:
+			print("add to room_q with error: ",e)
+	
+	
 
 def message_received(client, server, message):
 	# ws server的client 來源有2: 1. webserver 2. gamemain
-	# 1. webserver: 先經過 sandbox, 將結果回傳給user, 確定要使用再排進 room_q
+	# 1. webserver: call code_adddress
 	# 2. gamemain: 某 room遊戲結束, 通知 game_exec kill 該 room的 dc container, 並執行< movetoserv_q >;
 	# 續上：同時傳遞遊戲結果的訊息給 webserver (games/event.py 接收)
 
@@ -142,34 +176,13 @@ def message_received(client, server, message):
 	if data['from']=='webserver':
 		global webserver_id
 		webserver_id = client
+		code_address(server,data)
+
 	elif data['from']=='game':
 		print("gameover")
 	elif data['from']=='game_exec':
 		game_exec_id = client
-
-	def set_language(language):
-		compiler = {
-			"c": ["gcc",".c"],
-			"python": ["python3.7",".py"],
-			"shell": ["sh",".sh"]
-		}
-		language_obj = compiler.get(language, "Invalid month")
-		return language_obj 
-	language_res = set_language(data['language'])
-
-	filename=save_code(data['code'],data['room_name'],data['user_id'],data['game_lib_id'],language_res[1],path)
-	# filename include .xxx
-	test_result = sandbox(language_res[0],path,filename)
-	print(test_result[0])
-	print()
-	if test_result[0]:
-		server.send_message(webserver_id,test_result[1])
-		try:
-			room_q.push([data['room_name'],data['user_id'],data['game_lib_id'],language_res[0],path,filename,data['player_list']],'r')
-			print("add to room_q successfully")
-		except Exception as e:
-			print("add to room_q suwith error: ",e)
-		
+		print("game_exec")
 					
 
 def sandbox(compiler,path_, filename):
