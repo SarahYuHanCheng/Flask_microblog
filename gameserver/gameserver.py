@@ -2,18 +2,15 @@ import logging
 from websocket_server import WebsocketServer
 
 import time
-import json,sys
+import json,sys,os
 global path
-path="games/easy/codes/"
+path="games/easy/codes/1029/"
 game_exec_id=0
 servs_full=0
 servs_full_right=1
 
 
 server = WebsocketServer(6005, host='127.0.0.1')
-server.set_fn_new_client(new_client)# set callback function
-server.set_fn_message_received(message_received)
-server.run_forever()
 
 def movetoserv_q(i,st):
 	# 將room_q中第i個(到齊的)element移到 serv_q, 並執行 serv_q的第一個 element
@@ -31,14 +28,12 @@ def game_exec(st):
 	# 接收 serv_q的 element, 用 ws傳給 exec主機
 	# (game_exec_id 為 exec主機在 ws server上註冊的 client_id)
 	# 將 element解開逐一放進json dict裡, 增加 code
-	# {room_id, log_id, user_id, compiler, code, path, filename}
+	# {room_name, log_id, user_id, compiler, code}
 	global game_exec_id,server
 	code = (open(""+st[2]+st[3]))
 	print(code)
-	packet=json.dumps({'room_id':st[0],'log_id':st[1],'user_id':st[2],'compiler':st[3],'code':code,'path':st[4],'filename':st[5]}
-	# recv_msg['room'],recv_msg['userId'],recv_msg['compiler'],recv_msg['path'],recv_msg['filename']
+	packet=json.dumps({'room_name':st[0],'log_id':st[1],'user_id':st[2],'game_lib_id':st[3],'compiler':st[4],'code':code,'path':st[5],'filename':st[6]})
 	server.send_message(game_exec_id,packet)
-
 
 class MaxSizeList(object):
 	# room_q, serv_q皆使用此 list, push和 pop_first會依身份有不同的操作
@@ -113,6 +108,26 @@ def new_client(client, server):
 	msg1="Hey all, a new client has joined us"
 	# server.send_message(client,msg1)
 
+def save_code(code,room_name,user_id,game_lib_id,language,path):
+	# 在呼叫 sandbox前 將程式碼依遊戲人數？分類？為路徑 加上 lib後 存於 gameserver並回傳檔名
+	# "w"上傳新的程式碼會直接取代掉
+	filename="%s_%s%s"%(room_name,user_id,language)
+	try:
+		os.makedirs( path )
+	except:
+		pass
+	f = open("%s%s"%(path,filename), "w") 
+	f.write(code+'\n')
+	with open('%s%s%s'%(path,game_lib_id,language)) as fin: # lib應該是改取資料庫, 而非開文件
+		lines = fin.readlines() 
+		for i, line in enumerate(lines):
+			if i >= 0 and i < 6800:
+				f.write(line)
+		f.close()
+		return filename
+	f.close()
+	return filename
+
 
 def message_received(client, server, message):
 	# ws server的client 來源有2: 1. webserver 2. gamemain
@@ -124,16 +139,14 @@ def message_received(client, server, message):
 	print("Client(%d) said: %s" % (client['id'], message))
 	global game_exec_id
 	data = json.loads(message)
-	if data['from']=='servers':
-		game_exec_id =client['id']
+	if data['from']=='webserver':
+		global webserver_id
+		webserver_id = client
 	elif data['from']=='game':
-		print("game")
-	logId=1
-	gameId=1
-	p_cnt=0#data['logId']
-	game_p_cnt=1
-	user_id_list=[data['userId']]#left,right
-	log=tuple([logId,gameId,p_cnt,game_p_cnt,user_id_list])
+		print("gameover")
+	elif data['from']=='game_exec':
+		game_exec_id = client
+
 	def set_language(language):
 		compiler = {
 			"c": ["gcc",".c"],
@@ -143,14 +156,19 @@ def message_received(client, server, message):
 		language_obj = compiler.get(language, "Invalid month")
 		return language_obj 
 	language_res = set_language(data['language'])
-	filename=save_code(data['code'],json.dumps(log),data['room'],data['userId'],language_res[1])
-	# path 
+
+	filename=save_code(data['code'],data['room_name'],data['user_id'],data['game_lib_id'],language_res[1],path)
 	# filename include .xxx
-	if sandbox(language_res[0],path,filename):
-		if room_q.push([data['room'],logId,data['userId'],language_res[0],path,filename,data['player_list']],'r'):
-			print("full, need to wait(for a min)")
-		else:
+	test_result = sandbox(language_res[0],path,filename)
+	print(test_result[0])
+	print()
+	if test_result[0]:
+		server.send_message(webserver_id,test_result[1])
+		try:
+			room_q.push([data['room_name'],data['user_id'],data['game_lib_id'],language_res[0],path,filename,data['player_list']],'r')
 			print("add to room_q successfully")
+		except Exception as e:
+			print("add to room_q suwith error: ",e)
 		
 					
 
@@ -161,30 +179,21 @@ def sandbox(compiler,path_, filename):
 	from subprocess import Popen, PIPE
 	image='cce238a618539'
 	try:
-		p = Popen('sh script.sh '+image+' '+compiler+' '+path_+' '+filename+'',shell=True, stdout=PIPE, stderr=PIPE)
+		p = Popen('sh sandbox/script.sh ' + image + ' ' + compiler + ' ' + path_ + ' '+ filename + '',shell=True, stdout=PIPE, stderr=PIPE)
 		stdout, stderr = p.communicate()
-		print('stderr: ',stderr)
-		print('stdout: ',stdout)
-		return 0
+		print('stderr:', stderr)
+		if stderr:
+			return [0,stderr]
+		else:
+			return [1,stdout]
 	except Exception as e:
 		print('e: ',e)
-		return 1
+		return e
 	
-
-def save_code(code,log,room,user_id,language):
-	# 在呼叫 sandbox前 將程式碼依遊戲人數？分類？為路徑 存於 gameserver並回傳檔名
-	# log=tuple([logId,gameId,p_cnt,game_p_cnt])
-	logdata=json.loads(log)
-	filename="%d_%s%s"%(logdata[0],user_id,language)#logId,userId
-	f = open(path+filename, "w") 
-	f.write(code)
-	f.close()
 	
-	# logdata[2]+=1
-	# if logdata[2]==logdata[3]:
-	# 	execute_queue(logdata[0],room,logdata[4])
-	return filename
-	
+server.set_fn_new_client(new_client)# set callback function
+server.set_fn_message_received(message_received)
+server.run_forever()
 
 
 
