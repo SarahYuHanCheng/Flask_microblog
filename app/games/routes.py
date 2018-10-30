@@ -86,7 +86,7 @@ def add_room():
 			room = Room(roomname=form.room_name.data)#, game_id=form.game_id.data, player_list=form.player_list.data,max_people=form.max_people.data
 			db.session.add(room)
 			db.session.commit()
-			session['room_id']=room.id
+			session['room_name']=room.id
 		else:
 			print("please change name")
 
@@ -107,9 +107,9 @@ def add_room():
 @login_required
 def room_wait():
 	# 等待玩家到齊
-	room_id=session.get('room_id')
+	room_name=session.get('room_name')
 	
-	room=Room.query.filter_by(id=room_id).first()
+	room=Room.query.filter_by(id=room_name).first()
 	player_list=room.player_list.split(',')
 	if current_user in player_list:
 		player_list.remove(current_user)
@@ -150,6 +150,12 @@ def game_view(logId):
 	comment_form = CommentCodeForm() #current_log.id
 	name = session.get('name', '')
 	room = session.get('room', '')
+	if request.args.get('box_res') :
+		box_res = request.args.get('box_res')
+		print("res ok",box_res)
+	else: 
+		box_res='defult'
+		print("res no")
 
 	if request.method == 'GET':
 
@@ -174,8 +180,12 @@ def game_view(logId):
 		db.session.add(comment)
 		db.session.commit()
 		flash('Your code have been saved.')
+	else:
+		pass
+	
+		
 	return render_template('games/game/game_view.html',logId=current_log, title='Commit Code',
-                           comment_form=comment_form, name=name, room=room)
+                           comment_form=comment_form, name=name, room=room,box_res=box_res)
 
 
 @bp.route('/commit_code', methods=['GET','POST'])
@@ -194,14 +204,15 @@ def commit_code():
 	db.session.commit()
 	flash('Your code have been saved.')
 	current_code=code.id
+	game_lib_id=1
 	ws = create_connection("ws://localhost:6005")
-	print("Sending 'Hello, World'...")
-	ws.send(json.dumps({'code':editor_content,'room':room,'logId':name,'userId':current_user.id,'game_id':log_id,'language':"python",'player_list':['111','222']}))
+	ws.send(json.dumps({'from':'webserver','code':editor_content,'room_name':room,'logId':name,'user_id':current_user.id,'game_lib_id':game_lib_id,'language':"python",'player_list':[1,2]}))
+	print("wait for recv")
 	result =  ws.recv()
 	print("Received '%s'" % result)
 	ws.close()
 	
-	return redirect(url_for('.game_view',logId=current_log))
+	return redirect(url_for('.game_view',logId=current_log,box_res=result))
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
