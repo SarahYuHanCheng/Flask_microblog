@@ -150,15 +150,10 @@ def game_view(logId):
 	comment_form = CommentCodeForm() #current_log.id
 	name = session.get('name', '')
 	room = session.get('room', '')
-	if request.args.get('box_res') :
-		box_res = request.args.get('box_res')
-		print("res ok",box_res)
-	else: 
-		box_res='defult'
-		print("res no")
+	
 
 	if request.method == 'GET':
-
+		print("GET")
 		if name == '' or room == '':
 			return redirect(url_for('.index'))
 
@@ -173,7 +168,9 @@ def game_view(logId):
 		# if comments.has_prev else None
 		# return render_template('games/game_view.html',logId=current_log, title='Commit Code',
         #                    comment_form=comment_form,comments=comments.items, name=name, room=room) #next_url=next_url, prev_url=prev_url
-
+		return render_template('games/game/game_view.html',logId=current_log, title='Commit Code',
+                           comment_form=comment_form, name=name, room=room,box_res="default")
+		
 	elif comment_form.validate_on_submit():
 		current_code=logId
 		comment = Comment(code_id=current_code, body=comment_form.body.data)#comment_form.code_id.data
@@ -181,12 +178,17 @@ def game_view(logId):
 		db.session.commit()
 		flash('Your code have been saved.')
 	else:
-		pass
-	
-		
-	return render_template('games/game/game_view.html',logId=current_log, title='Commit Code',
+		print(request.method)
+		if request.args.get('box_res') :
+			box_res = request.args.get('box_res')
+			print("res ok",box_res)
+		else: 
+			box_res='defult'
+			print("res no")
+		return render_template('games/game/game_view.html',logId=current_log, title='Commit Code',
                            comment_form=comment_form, name=name, room=room,box_res=box_res)
-
+		
+	
 
 @bp.route('/commit_code', methods=['GET','POST'])
 @login_required
@@ -207,12 +209,11 @@ def commit_code():
 	game_lib_id=1
 	ws = create_connection("ws://localhost:6005")
 	ws.send(json.dumps({'from':'webserver','code':editor_content,'room_name':room,'logId':name,'user_id':current_user.id,'game_lib_id':game_lib_id,'language':"python",'player_list':[1,2]}))
-	print("wait for recv")
 	result =  ws.recv()
 	print("Received '%s'" % result)
 	ws.close()
 	
-	return redirect(url_for('.game_view',logId=current_log,box_res=result))
+	return redirect(url_for('games.game_view',logId=current_log,box_res=result))
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
@@ -241,4 +242,4 @@ def gameover(logId):
 	log=Log.query.with_entities(Log.game_id).filter_by(id=logId).first()
 	db.session.commit()
 	print(Log.get_rank_list(Log,str(log[0])))# log[1]=game_id
-	return render_template('games/index.html', title='Register',form=form)
+	return render_template('games/index.html', title='Register')
