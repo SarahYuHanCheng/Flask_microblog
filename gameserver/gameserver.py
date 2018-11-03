@@ -152,16 +152,17 @@ def code_address(server,data):
 	filename=save_code(data['code'],data['room_name'],data['user_id'],data['game_lib_id'],language_res[1],path)
 	# filename include .xxx
 	test_result = sandbox(language_res[0],path,filename)
-
 	if test_result[0]:
-		server.send_message(webserver_id,test_result[1])
+		msg=test_result[1]
 		try:
 			room_q.push([data['room_name'],data['user_id'],data['game_lib_id'],language_res[0],path,filename,data['player_list']],'r')
 			print("add to room_q successfully")
 		except Exception as e:
 			print("add to room_q with error: ",e)
-	
-	
+	else:
+		msg=b"ERROR, "+test_result[1]
+
+	server.send_message(webserver_id,msg.decode('utf-8'))
 
 def message_received(client, server, message):
 	# ws server的client 來源有2: 1. webserver 2. gamemain
@@ -174,9 +175,11 @@ def message_received(client, server, message):
 	global game_exec_id
 	data = json.loads(message)
 	if data['from']=='webserver':
+		
 		global webserver_id
 		webserver_id = client
 		code_address(server,data)
+
 
 	elif data['from']=='game':
 		print("gameover")
@@ -194,10 +197,12 @@ def sandbox(compiler,path_, filename):
 	try:
 		p = Popen('sh sandbox/script.sh ' + image + ' ' + compiler + ' ' + path_ + ' '+ filename + '',shell=True, stdout=PIPE, stderr=PIPE)
 		stdout, stderr = p.communicate()
-		print('stderr:', stderr)
+		print('stdout:', stdout)
 		if stderr:
+			print('stderr:', stderr)
 			return [0,stderr]
 		else:
+			print('stdout:', stdout)
 			return [1,stdout]
 	except Exception as e:
 		print('e: ',e)
