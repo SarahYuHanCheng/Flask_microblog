@@ -1,27 +1,37 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, HiddenField, TextAreaField, SelectField, IntegerField
 from wtforms.validators import DataRequired, ValidationError, Length
-from app.models import User, Log, Code
+from app.models import User, Log, Code, Game
 from flask_login import current_user
 from app.games import current_game,current_log,current_code
 
 
-class StartGameForm(FlaskForm):
-	game_id = HiddenField('Game id', default=current_game)
-	userId =current_user
-	user_id = HiddenField('User id', default=userId)
+class ChooseGameForm(FlaskForm):
+	game_category = SelectField('Game Category')# , coerce=int
+		# choices=[('1 player', '1'), ('2 players', '2'), ('3 player', '3')])
+	user_id = HiddenField('User id', default=current_user)
 	start = SubmitField('Start Game')
 
 	# def __init__(self, arg):
 	# 	super(StartGameForm, self).__init__()
 	# 	self.arg = arg
 
+
+	# def game_list(self,request, game_category):
+	# 	user = Game.query.filter_by(username=self.username.data).first()
+	# 	form = ChooseGameForm() # 這樣寫對嗎？
+	# 	form.game_category.choices = [(g.id, g.gamename) for g in Game.query.order_by('category_id')]	
+		
+	# 	submit = SubmitField('Enter Gameroom')
+
+
 class CreateGameForm(FlaskForm):
 	user_id = HiddenField('User id', default=current_user)
 	gamename = TextAreaField('gamename', validators=[DataRequired()])
 	descript = TextAreaField('descript', validators=[DataRequired()])
-	game_lib = TextAreaField('game_lib', validators=[DataRequired()])
-	example_code = TextAreaField('example code', validators=[DataRequired()])
+
+	game_lib = TextAreaField('game_lib')#, validators=[DataRequired()]
+	example_code = TextAreaField('example code')# , validators=[DataRequired()]
 	language = SelectField(
 		'Programming Language',
 		choices=[('cpp', 'C++'), ('py', 'Python'), ('js', 'Javascript')]
@@ -61,12 +71,6 @@ class AddRoomForm(FlaskForm):
 		# if room is not None:
 		# 	raise ValidationError('Please use a different roomname.')
 	
-def game_list(request, game_category):
-	user = Game.query.filter_by(username=self.username.data).first()
-	form = UserDetails(request.POST, obj=user)
-	form.group_id.choices = [(g.id, g.name) for g in Group.query.order_by('name')]	
-	
-	submit = SubmitField('Enter Gameroom')
 
 
 

@@ -251,21 +251,21 @@ class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     gamename = db.Column(db.String(30))
     descript = db.Column(db.String(1024))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    game_lib = db.Column(db.String(10240))
-    example_code = db.Column(db.String(1024))
+    # timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    # user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    # game_lib = db.Column(db.String(10240))
+    # example_code = db.Column(db.String(1024))
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'),
         nullable=False)
-    category = db.relationship('Category',
-        backref=db.backref('posts', lazy=True))
+    # category = db.relationship('Category',
+    #     backref=db.backref('posts', lazy=True))
 
 
-    level = db.Column(db.String(1024))
-    player_num = db.Column(db.String(1024))
-    rules = db.Column(db.String(1024))
-    language = db.Column(db.String(1024))
-    game_file = db.Column(db.String(1024))# with pygame
+    # level = db.Column(db.String(1024))
+    # player_num = db.Column(db.String(1024))
+    # rules = db.Column(db.String(1024))
+    # language = db.Column(db.String(1024))
+    # game_file = db.Column(db.String(1024))# with pygame
 
     # codes = db.relationship('Code', backref='game', lazy='dynamic')
     

@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, current_app, session
 from app import db
-from app.games.forms import CreateGameForm, StartGameForm,CommentCodeForm, AddRoomForm, LoginForm
+from app.games.forms import CreateGameForm, ChooseGameForm,CommentCodeForm, AddRoomForm, LoginForm
 from flask_login import current_user, login_user, logout_user,login_required
 from app.models import User, Comment, Game, Log, Code, Comment,Room
 from werkzeug.urls import url_parse
@@ -131,7 +131,7 @@ def room_wait():
 @login_required
 def start_game(gameId):
 	# 開始遊戲 切換到 gameview
-	form = StartGameForm()
+	form = ChooseGameForm()
 	if form.validate_on_submit():
 		log = Log(game_id=gameId)
 		db.session.add(log)
