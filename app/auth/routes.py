@@ -89,9 +89,18 @@ def oauth_callback(provider):
     if not current_user.is_anonymous:
         return redirect(url_for('main.index'))
     oauth = OAuthSignIn.get_provider(provider)
-    social_id, username, email,picture,friends= oauth.callback()
-    print('/callback')
-    print(friends['data'])
+    try:
+        social_id, username, email,picture,friends= oauth.callback()
+        print('/friends:',friends[0])
+    except:
+        print("except")
+    # for element in friends:
+    #     print('element:',element[0])
+    # ff=int(element[0] or 0)
+    # if friend :
+    #     print("No friend here")
+    # else:
+    #     print(element[0])
     if social_id is None:
         flash('Authentication failed.')
         return redirect(url_for('main.index'))
@@ -101,4 +110,5 @@ def oauth_callback(provider):
         db.session.add(user)
         db.session.commit()
     login_user(user, True)
-    return redirect(url_for('main.index',friends=friends['data']))
+    # return redirect(url_for('main.index',friends=friends['data']))
+    return redirect(url_for('main.index',friends=["www","sss"]))
