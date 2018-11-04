@@ -7,7 +7,7 @@ def game_over(message):
     # msg：tuple([l_score,r_score,gametime])??
     # 使 webserver切換至 gameover路由
     print('end game',message['msg'])
-    return redirect(url_for('games.gameover',room= message['msg'][3],msg= message['msg'])
+    return redirect(url_for('games.gameover',room= message['msg'][3],msg= message['msg']))
 
 @socketio.on('connectfromgame')
 def test_connect(message):
