@@ -1,4 +1,4 @@
-＃ gamemain
+#gamemain
 import socket,json,time
 import threading,math, random, sys
 from socketIO_client import SocketIO, LoggingNamespace

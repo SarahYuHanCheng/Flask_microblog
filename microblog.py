@@ -11,3 +11,4 @@ def make_shell_context():
 	
 if __name__ == '__main__':
 	socketio.run(app)#,host='140.116.1.136'
+	# ,ssl_context=('cert.pem', 'key.pem')

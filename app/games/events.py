@@ -13,9 +13,7 @@ def game_over(message):
 def test_connect(message):
     # 接收來自 exec主機 gamemain傳送的訊息並再傳至browser
     # msg:??
-    global cnt
-    cnt+=1
-    print(cnt)
+    print(message['msg'])
     emit('gameobject', {'msg': message['msg']},room= message['msg'][3])
 
 @socketio.on('joined' )
