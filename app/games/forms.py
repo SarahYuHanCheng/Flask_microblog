@@ -7,20 +7,27 @@ from app.games import current_game,current_log,current_code
 
 
 class ChooseGameForm(FlaskForm):
-	game_category = SelectField('Game Category')# , coerce=int
-		# choices=[('1 player', '1'), ('2 players', '2'), ('3 player', '3')])
+	game_category = SelectField('Game Category',# ) coerce=int
+		choices=[('1', 'one player'), ('2', 'two players'), ('3','3 players')])
+	game =  SelectField('Game',# ) coerce=int
+		choices=[('1', 'maze'), ('2', 'pinpong'), ('3', 'shoot')])
 	user_id = HiddenField('User id', default=current_user)
 	start = SubmitField('Start Game')
 
 	# def __init__(self, arg):
 	# 	super(StartGameForm, self).__init__()
 	# 	self.arg = arg
+		# user = Game.query.filter_by(username=self.username.data).first()
+		# form = ChooseGameForm() # 這樣寫對嗎？
+		# form.game_category.choices = [(g.id, g.gamename) for g in Game.query.order_by('category_id')]	 
 
 
 	# def game_list(self,request, game_category):
 	# 	user = Game.query.filter_by(username=self.username.data).first()
 	# 	form = ChooseGameForm() # 這樣寫對嗎？
-	# 	form.game_category.choices = [(g.id, g.gamename) for g in Game.query.order_by('category_id')]	
+	# 	form.game_category.choices = [(c.id, c.name) for c in Category.query.order_by('category_id')]	
+	# 	form.game.choices = [(g.id, g.gamename) for g in Game.query.order_by('game_id')] # join Game_Category
+	# 	form.game.choices = [(g.id, g.gamename) for g in Game.query.order_by('category_id')]	
 		
 	# 	submit = SubmitField('Enter Gameroom')
 
