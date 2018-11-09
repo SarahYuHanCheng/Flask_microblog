@@ -15,6 +15,7 @@
                     </tr>
                     </thead>
                     <tbody>
+                    <p>room_wait</p>
                     {% for room in rooms %}
                         <tr>
                             <th scope="row">1</th>
@@ -22,10 +23,23 @@
                             <td>{{ room.roomname }}</td>
                             <td>online_people</td>
                             <td>max_people</td>
-                            <td><a href="{{ url_for('games.game_view',logId=room.id) }}">@mdo</a></td>
+                            <td><a href="{{ url_for('games.room_wait',room_id=room.id) }}">@mdo</a></td>
                         </tr>
                     {% endfor %}
                     </tbody>
+                    <tbody>
+                            <p>game_start</p>
+                        {% for room in rooms %}
+                            <tr>
+                                <th scope="row">1</th>
+                                <td>{{ room.id }}</td>
+                                <td>{{ room.roomname }}</td>
+                                <td>online_people</td>
+                                <td>max_people</td>
+                                <td><a href="{{ url_for('games.game_view',room_id=room.id) }}">@mdo</a></td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
                    
                 </table>
               
