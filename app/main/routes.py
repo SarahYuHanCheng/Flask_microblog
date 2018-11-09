@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request, g, jsonify, current_app
+from flask import render_template, flash, redirect, url_for, request, g, jsonify, current_app, session
 from app import db
 from app.main.forms import EditProfileForm, PostForm
 from flask_login import current_user, login_required
@@ -22,6 +22,7 @@ def index():
 	print('/index')
 	print(request.args.get('friends'))
 	form= PostForm()
+	session['username']=current_user.username
 	if form.validate_on_submit():
 		post = Post(body=form.post.data, author=current_user)
 		db.session.add(post)

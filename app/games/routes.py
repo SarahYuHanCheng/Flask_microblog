@@ -2,7 +2,7 @@ from flask import render_template, flash, redirect, url_for, request, current_ap
 from app import db
 from app.games.forms import CreateGameForm, ChooseGameForm,CommentCodeForm, AddRoomForm, LoginForm
 from flask_login import current_user, login_user, logout_user,login_required
-from app.models import User, Comment, Game, Log, Code, Comment,Room
+from app.models import User, Game, Log, Code, Room
 from werkzeug.urls import url_parse
 from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
@@ -106,41 +106,47 @@ def add_room():
 @bp.route('/room_wait', methods=['GET','POST'])
 @login_required
 def room_wait():
-	# 等待玩家到齊
-	room_name=session.get('room_name')
+	# 等待玩家到齊才能 start game, 按下 btn('start game'),新增 log並切換到 game_view 
+	room_name="q1" #session.get('room_name')
+	print('room_name:',room_name)
+	room=Room.query.filter_by(roomname=room_name).first()
+	print('room:',room)
+	# player_list=room.player_list.split(',')
 	
-	room=Room.query.filter_by(id=room_name).first()
-	player_list=room.player_list.split(',')
-	if current_user in player_list:
-		player_list.remove(current_user)
-		str_list=''.join(player_list)
-		room.player_list=str_list
-		db.session.commit()
+	# if current_user in player_list:
+	# 	player_list.remove(current_user)
+	# 	str_list=''.join(player_list)
+	# 	room.player_list=str_list
+	# 	db.session.commit()
 
-	is_all_in_room =len(player_list)
-	print(is_all_in_room)
-	gameId = request.args.get('gameId', 1, type=int)
-	if is_all_in_room:
-		return redirect(url_for('games.start_game',gameId))
-	room_game = Game.query.filter_by(id=room.game_id).first()
-	flash('Congratulations, now start the room!')
-	return render_template('games/room/room_wait.html', title='room_wait',game_name=room_game.name,game_p_num =room_game.player_num,game_img = room_game.img)
-
-
-@bp.route('/start_game/<int:gameId>', methods=['GET','POST'])
-@login_required
-def start_game(gameId):
-	# 開始遊戲 切換到 gameview
+	# is_all_in_room =len(player_list)
+	# print(is_all_in_room)
+	# gameId = request.args.get('gameId', 1, type=int)
 	form = ChooseGameForm()
+	is_all_in_room=1
 	if form.validate_on_submit():
-		log = Log(game_id=gameId)
-		db.session.add(log)
-		db.session.commit()
-		current_log=log.id
-		session['log_id'] =log.id
-		flash('Congratulations, now start the game!')
-		return redirect(url_for('games.game_view',logId=log.id))
-	return render_template('games/room/start_game.html', title='Register', gameId=gameId,form=form)
+		print("ok to read submit evenif behind if condition")
+		if is_all_in_room:
+			print("start game, set log id")
+			log = Log(game_id=form.game.data)#, game_id=form.game_id.data, player_list=form.player_list.data,max_people=form.max_people.data
+			db.session.add(log)
+			db.session.commit()
+			
+			print("log",log)
+			session['log_id']=log.id
+			return redirect(url_for('games.game_view',logId=log.id))
+			flash('Congratulations, now start the room!')
+			
+		else:
+			print("wait for other players")
+			flash('Congratulations, now start the room!')
+			is_all_in_room=1
+
+
+		
+	# room_game = Game.query.filter_by(id=room.current_log_id).first()
+	
+	return render_template('games/room/room_wait.html', title='room_wait',form=form) #,game_name=room_game.name,game_p_num =room_game.player_num,game_img = room_game.img
 
 
 @bp.route('/game_view/<int:logId>', methods=['GET','POST'])
@@ -150,17 +156,19 @@ def game_view(logId):
 	comment_form = CommentCodeForm() #current_log.id
 	name = session.get('name', '')
 	room = session.get('room', '')
-	
+	print("logId",logId)
+	log_id = session.get('log_id', '')
+	print("log_id",log_id)
 
 	if request.method == 'GET':
-		print("GET")
+		print("log_id",log_id)
 		if name == '' or room == '':
 			return redirect(url_for('.index'))
 
 		current_code=logId
 		page = request.args.get('page', 1, type=int)
-		comments = Comment.query.filter_by(code_id = current_code).order_by(Comment.timestamp.desc()).paginate(
-        page, current_app.config['POSTS_PER_PAGE'], False)
+		# comments = Comment.query.filter_by(code_id = current_code).order_by(Comment.timestamp.desc()).paginate(
+        # page, current_app.config['POSTS_PER_PAGE'], False)
 
 		# next_url = url_for('games.game_view', page=comments.next_num, logId=current_log) \
 		# if comments.has_next else None
@@ -173,9 +181,9 @@ def game_view(logId):
 		
 	elif comment_form.validate_on_submit():
 		current_code=logId
-		comment = Comment(code_id=current_code, body=comment_form.body.data)#comment_form.code_id.data
-		db.session.add(comment)
-		db.session.commit()
+		# comment = Comment(code_id=current_code, body=comment_form.body.data)#comment_form.code_id.data
+		# db.session.add(comment)
+		# db.session.commit()
 		flash('Your code have been saved.')
 	else:
 		print(request.method)
@@ -188,8 +196,6 @@ def game_view(logId):
 		return render_template('games/game/game_view.html',logId=current_log, title='Commit Code',
                            comment_form=comment_form, name=name, room=room,box_res=box_res)
 		
-	
-
 @bp.route('/commit_code', methods=['GET','POST'])
 @login_required
 def commit_code():
@@ -219,6 +225,7 @@ def commit_code():
 def index():
 	# 主畫面會有很多tab(News, NewsGame, HotGames,Discuss, Rooms)
     """Login form to enter a room."""
+    print("user:",session.get('username','nnnooo'))
     form = LoginForm()
     if form.validate_on_submit():
         session['name'] = form.name.data
