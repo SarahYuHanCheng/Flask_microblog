@@ -106,10 +106,13 @@ def add_room():
 @bp.route('/room_wait', methods=['GET','POST'])
 @login_required
 def room_wait():
+	# client 進來後更新 room_player, 
 	# 等待玩家到齊才能 start game, 按下 btn('start game'),新增 log並切換到 game_view 
 	room_name="q1" #session.get('room_name')
 	print('room_name:',room_name)
 	room=Room.query.filter_by(roomname=room_name).first()
+	current_log=Room.query.with_entities(current_log_id).filter_by(roomname=room_name).first()
+	session['log_id']=current_log # 此玩家目前在哪個log中
 	print('room:',room)
 	# player_list=room.player_list.split(',')
 	
@@ -123,7 +126,7 @@ def room_wait():
 	# print(is_all_in_room)
 	# gameId = request.args.get('gameId', 1, type=int)
 	form = ChooseGameForm()
-	is_all_in_room=1
+	
 	if form.validate_on_submit():
 		print("ok to read submit evenif behind if condition")
 		if is_all_in_room:

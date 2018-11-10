@@ -37,7 +37,7 @@ followers = db.Table('followers',
     db.Column('follower_id',db.Integer, db.ForeignKey('user.id')),
     db.Column('followed_id',db.Integer, db.ForeignKey('user.id'))
     )
-players = db.Table('players',
+players_in_log = db.Table('players',
     db.Column('log_id',db.Integer, db.ForeignKey('log.id')),
     db.Column('player_id',db.Integer, db.ForeignKey('user.id'))
     )
@@ -45,7 +45,10 @@ room_logs = db.Table('R_logs',
     db.Column('room_id',db.Integer, db.ForeignKey('room.id')),
     db.Column('log_id',db.Integer, db.ForeignKey('log.id'))
     )
-
+players_in_room = db.Table('players_in_room',
+    db.Column('room_id',db.Integer,db.ForeignKey('room.id')),
+    db.Column('user_id',db.Integer,db.ForeignKey('user.id'))
+    )
 
 @login.user_loader #@lm.user_loader
 def load_user(id):
@@ -64,7 +67,8 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
     #lazy argument defines how the database query for the relationship will be issued
     #mode of dynamic sets up the query to not run until specifically requested
     
-    logs = db.relationship("Log", backref='programmer', lazy='dynamic') #0927
+    log_id = db.relationship("Log",secondary=players_in_log,
+    primaryjoin=(players_in_log.c.=) backref='programmer', lazy='dynamic') 
     
 
     # about_me =db.deferred( db.Column(db.String(140)))
@@ -319,12 +323,19 @@ class Room(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     roomname = db.Column(db.String(30),unique=True)
     current_log_id = db.Column(db.Integer, db.ForeignKey('log.id'))
-    # log_id_list = db.Column(db.Integer, db.ForeignKey('log.id'))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     # max_people = db.Column(db.Integer, db.ForeignKey('user.id'))
-    
-    # is_all_in_room = db.Column(db.Integer)
+    players = db.relationship('User',secondary=players_in_room,
+    primaryjoin=(players_in_room.c.room_id==id),
+    #secondaryjoin=(players_in_room.c.user_id ==id), # not sure, what the id??
+    backref=db.backref('players_in_room', lazy='dynamic'),lazy='dynamic'
+    )
+    is_all_in_room = db.Column(db.Integer)
     # audience_list = db.Column(db.String(1024))
+    def is_all_in(self):
+        log_players=Log.query.with_entities(Log.player_list).filter_by(current_log_id)
+        if(self.players.filter(
+            players_in_room.c.room_id == id).count())==
 
    
         
