@@ -1,8 +1,8 @@
 from flask import render_template, flash, redirect, url_for, request, g, jsonify, current_app, session
 from app import db
-from app.main.forms import EditProfileForm, PostForm
+from app.main.forms import EditProfileForm, PostForm,PrivacyForm,StatusForm
 from flask_login import current_user, login_required
-from app.models import User, Post
+from app.models import User, Post, Privacy,Status
 from werkzeug.urls import url_parse
 from datetime import datetime
 from oauth import OAuthSignIn
@@ -109,3 +109,28 @@ def unfollow(username):
     flash('You are not following {}.'.format(username))
     return redirect(url_for('main.user', username=username))
 
+@bp.route('/manage', methods=['GET', 'POST'])
+@login_required
+def manage():
+    privacy_form=PrivacyForm()
+    status_form=StatusForm()
+    privacys=""
+    statuss=""
+    if privacy_form.validate_on_submit():
+        privacy= Privacy(privacy_name=privacy_form.privacy_name.data)
+        db.session.add(privacy)
+        db.session.commit()
+        flash('Your changes have been saved.')
+
+    elif status_form.validate_on_submit():
+        status= Status(status_name=status_form.status_name.data)
+        db.session.add(status)
+        db.session.commit()
+        flash('Your changes have been saved.')
+
+    privacys= Privacy.query.order_by(Privacy.id.asc()).all()
+    print('privacys',privacys)
+    statuss=Status.query.order_by(Status.id.asc()).all()        
+    print('statuss',statuss)
+    return render_template('manage.html', title='Edit manage',_privacy=privacys,_status=statuss,
+                           privacy_form=privacy_form,status_form=status_form)
