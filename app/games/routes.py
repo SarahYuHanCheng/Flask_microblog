@@ -70,16 +70,17 @@ def create_game():
 @bp.route('/add_room', methods=['GET','POST'])
 @login_required
 def add_room():
-	# 開房間, add log data
-	if request.args.get('gameObj'):
-		## test gameObj start
-		gameObj = request.args.get('gameObj')
-		loadgame = json.loads(gameObj)
-		lo0=loadgame[0]
-		print('lolo[game_lib]: ',lo0['game_lib'])
-		## test gameObj end
+	# 開房間, add log data with game,user
+	choose_form = ChooseGameForm()
+	if choose_form.validate_on_submit():
+		print('game.data: ',choose_form.game.data) #確認 form data是否為 id
+		log = Log(game_id=choose_form.game.data)
+		db.session.add(log)
+		log.current_users.append(current_user)
+		db.session.commit()
+		
 
-	form = AddRoomForm()
+
 	# if form.validate_on_submit():
 	# 	r_query=Room.query.filter_by(roomname=form.room_name.data).first()
 	# 	if r_query is None:
@@ -101,7 +102,7 @@ def add_room():
 	# 	return redirect(url_for('games.room_wait'))#,form.game_id.data
 	# elif request.method == 'GET':
 	# 	form.room_name.data = session.get('name', '')
-	return render_template('games/room/add_room.html', title='add_room',form=form)
+	return render_template('games/room/add_room.html', title='add_room',form=choose_form)
 
 @bp.route('/room_wait/<int:log_id>', methods=['GET','POST'])
 @login_required
@@ -117,26 +118,29 @@ def room_wait(log_id):
 	leave_form = LeaveForm()
 	choose_form = ChooseGameForm()
 
-	
+	print('wait_room',p,s)
 	if p is 1: # public,可以
-		if s not 0: # room還沒滿,可以進來參賽(新增 player_in_log data, update user的 current_log)
+		if s is not (0 or 1) : # room還沒滿,可以進來參賽(新增 player_in_log data, update user的 current_log)
 			if join_form.validate_on_submit():# 按下參賽按鈕
 				
 				current_user.current_log_id = log_id
-				db.dession.commit()
+				db.session.commit()
 				current_users_len = len(l.current_users)
-				game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=l.game_id).first()
-				l.status = game_player_num - current_users_len
+				print(l.game_id)
+				game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=2).first()
+				
+				l.status = int(game_player_num[0]) - current_users_len
 				l.current_users.append( current_user )
 				db.session.commit()
 				
-
 				
 			elif leave_form.validate_on_submit():
 				# 按下取消,退賽按鈕
 				l.current_users.remove( current_user )
 				current_user.current_log_id = ""
 				db.dession.commit()
+				print("leave")
+				return redirect(url_for('games.index'))
 
 				# 單純觀賽
 	elif p is 2:# friend
@@ -147,71 +151,16 @@ def room_wait(log_id):
 	
 	if choose_form.validate_on_submit():
 		if l.status is 0:
-			return return redirect(url_for('games.game_view',logId=l.id))
-
-	
+			return redirect(url_for('games.game_view',logId=l.id))
 	
 
-	
-		
 
-
-
-		
-
-
-			
-
-		
-		
-	# check log/status
-	
-	
-	room_name="q1" #session.get('room_name')
-	print('room_name:',room_name)
-	room=Room.query.filter_by(roomname=room_name).first()
-	current_log=Room.query.with_entities(current_log_id).filter_by(roomname=room_name).first()
-	session['log_id']=current_log # 此玩家目前在哪個log中
-	print('room:',room)
-	# player_list=room.player_list.split(',')
-	
-	# if current_user in player_list:
-	# 	player_list.remove(current_user)
-	# 	str_list=''.join(player_list)
-	# 	room.player_list=str_list
-	# 	db.session.commit()
-
-	# is_all_in_room =len(player_list)
-	# print(is_all_in_room)
-	# gameId = request.args.get('gameId', 1, type=int)
-	form = ChooseGameForm()
-	
-	if form.validate_on_submit():
-		print("ok to read submit evenif behind if condition")
-		if is_all_in_room:
-			print("start game, set log id")
-			log = Log(game_id=form.game.data)#, game_id=form.game_id.data, player_list=form.player_list.data,max_people=form.max_people.data
-			db.session.add(log)
-			db.session.commit()
-			
-			print("log",log)
-			session['log_id']=log.id
-			return redirect(url_for('games.game_view',logId=log.id))
-			flash('Congratulations, now start the room!')
-			
-		else:
-			print("wait for other players")
-			flash('Congratulations, now start the room!')
-			is_all_in_room=1
-
-
-		
 	# room_game = Game.query.filter_by(id=room.current_log_id).first()
 	
-	return render_template('games/room/room_wait.html', title='room_wait',form=form) #,game_name=room_game.name,game_p_num =room_game.player_num,game_img = room_game.img
+	return render_template('games/room/room_wait.html', title='room_wait',join_form=join_form,leave_form=leave_form,choose_form=choose_form) #,game_name=room_game.name,game_p_num =room_game.player_num,game_img = room_game.img
 
 
-@bp.route('/game_view/<int:logId>', methods=['GET','POST'])
+@bp.route('/game_view/<int:log_id>', methods=['GET','POST'])
 @login_required
 def game_view(logId):
 	# 比賽畫面
@@ -296,9 +245,12 @@ def index():
 	elif request.method == 'GET':
 		form.name.data = session.get('name', '')
 		form.room.data = session.get('room', '')
-		rooms = Room.query.order_by(Room.timestamp.desc()).all()
+		wait_rooms = Log.query.filter(Log.game_id>0).order_by(Log.timestamp.desc()).all()
+		gaming_room = Log.query.filter(Log.game_id==0).order_by(Log.timestamp.desc()).all()
+		# rooms = Room.query.order_by(Room.timestamp.desc()).all()
+		
 	   
-	return render_template('games/index/index.html', form=form, rooms=rooms)
+	return render_template('games/index/index.html', form=form,wait_rooms=wait_rooms,gaming_room=gaming_room)
 
 @bp.route('/gameover/<logId>', methods=['GET','POST'])
 @login_required

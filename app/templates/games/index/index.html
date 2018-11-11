@@ -25,7 +25,7 @@
                 {% include '/games/index/discuss.html' %}
         </div>
         <div id="Rooms" class="tabcontent">
-            {% if rooms %}
+            {% if wait_rooms or gaming_room %}
                 {% include '/games/index/room_list.html' %}
             {% endif %}
             <button onclick="addroom()">add room</button>

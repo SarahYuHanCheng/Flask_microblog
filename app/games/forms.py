@@ -86,3 +86,8 @@ class LoginForm(FlaskForm):
 	name = StringField('UserName', validators=[DataRequired()])
 	room = StringField('GameRoomId', validators=[DataRequired()])
 	submit = SubmitField('Enter Chatroom')
+
+class JoinForm(FlaskForm):
+	submit = SubmitField('Join game')
+class LeaveForm(FlaskForm):
+	submit = SubmitField('Leave Chatroom')

@@ -37,18 +37,11 @@ followers = db.Table('followers',
     db.Column('follower_id',db.Integer, db.ForeignKey('user.id')),
     db.Column('followed_id',db.Integer, db.ForeignKey('user.id'))
     )
-players_in_log = db.Table('players',
+players_in_log = db.Table('players_in_log',
     db.Column('log_id',db.Integer, db.ForeignKey('log.id')),
     db.Column('player_id',db.Integer, db.ForeignKey('user.id'))
     )
-room_logs = db.Table('R_logs',
-    db.Column('room_id',db.Integer, db.ForeignKey('room.id')),
-    db.Column('log_id',db.Integer, db.ForeignKey('log.id'))
-    )
-players_in_room = db.Table('players_in_room',
-    db.Column('room_id',db.Integer,db.ForeignKey('room.id')),
-    db.Column('user_id',db.Integer,db.ForeignKey('user.id'))
-    )
+
 
 @login.user_loader #@lm.user_loader
 def load_user(id):
@@ -62,15 +55,14 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
+    current_log_id = db.Column(db.Integer, db.ForeignKey('log.id'))
+
+
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     #backref argument defines the name of a field that will be added to the objects of the "many" class that points back at the "one" object.
     #lazy argument defines how the database query for the relationship will be issued
     #mode of dynamic sets up the query to not run until specifically requested
     
-    log_id = db.relationship("Log",secondary=players_in_log,
-    primaryjoin=(players_in_log.c.=) backref='programmer', lazy='dynamic') 
-    
-
     # about_me =db.deferred( db.Column(db.String(140)))
     # last_seen = db.deferred(db.Column(db.DateTime, default=datetime.utcnow))
     
@@ -83,8 +75,15 @@ class User(PaginatedAPIMixin, UserMixin, db.Model):
 
 
 
+
     def __repr__(self): #__repr__() tells Python how to print objects of this class
         return '{}'.format(self.id)
+    
+    def enter_log(self, user):
+        pass
+        # if not 
+        #     self.current_log_id.append(user)
+
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -205,8 +204,18 @@ class Code(db.Model):
     def get_codes(self):
         pass
 
-    def get_codes(self):
-        pass
+
+class Privacy(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    privacy_name =db.Column(db.String(30)) 
+    def __repr__(self):
+        return '<Privacy {}>'.format(self.id)
+
+class Status(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    status_name =db.Column(db.String(30)) 
+    def __repr__(self):
+        return '<Status {}>'.format(self.id)
 
 
 class Log(db.Model):
@@ -214,10 +223,15 @@ class Log(db.Model):
     record_content = db.Column(db.String(1024),default='record_content')
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     # user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
     game_id = db.Column(db.Integer, db.ForeignKey('game.id'))
     winner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-
+    status=db.Column(db.Integer,db.ForeignKey('status.id'))
+    privacy=db.Column(db.Integer,db.ForeignKey('privacy.id'))
     score = db.Column(db.Integer,default='100200')
+    
+    current_users = db.relationship(
+        'User', secondary=players_in_log)
 
     # player_list = db.relationship(
     #     'User', secondary=players,
@@ -225,10 +239,7 @@ class Log(db.Model):
     #     secondaryjoin=(players.c.user_id ==id),
     #     backref=db.backref('players', lazy='dynamic'),lazy='dynamic'
     # )
-    player_list = db.relationship(
-        'User',secondary=players,
-        backref='logId'
-    )
+
 
     def __repr__(self):
         return '<Log {}>'.format(self.id)
@@ -264,7 +275,7 @@ class Game(db.Model):
     descript = db.Column(db.String(1024))
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    game_lib_id = db.Column(db.Integer)
+    game_lib_id = db.Column(db.Integer, db.ForeignKey('game_lib.id'))
 
     # example_code = db.Column(db.String(1024))
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'),
@@ -318,24 +329,6 @@ class Category(db.Model):
     def __repr__(self):
         return '<Category %r>' % self.name
 
-
-class Room(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    roomname = db.Column(db.String(30),unique=True)
-    current_log_id = db.Column(db.Integer, db.ForeignKey('log.id'))
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
-    # max_people = db.Column(db.Integer, db.ForeignKey('user.id'))
-    players = db.relationship('User',secondary=players_in_room,
-    primaryjoin=(players_in_room.c.room_id==id),
-    #secondaryjoin=(players_in_room.c.user_id ==id), # not sure, what the id??
-    backref=db.backref('players_in_room', lazy='dynamic'),lazy='dynamic'
-    )
-    is_all_in_room = db.Column(db.Integer)
-    # audience_list = db.Column(db.String(1024))
-    def is_all_in(self):
-        log_players=Log.query.with_entities(Log.player_list).filter_by(current_log_id)
-        if(self.players.filter(
-            players_in_room.c.room_id == id).count())==
 
    
         
