@@ -11,34 +11,6 @@ servs_full_right=1
 
 server = WebsocketServer(6005, host='127.0.0.1')
 
-def game_exec(elephant_from_serv):
-	# game_exec端有空的主機,就會回來polling gameserver, 在 msg_recv被 call
-	# 接收 serv_q的 elephant, for將elephant的 element 用 ws傳給 exec主機
-	# (game_exec_id 為 exec主機在 ws server上註冊的 client_id)
-	# 將 element解開逐一放進json dict裡, 增加 code
-	# {room_name, log_id, user_id, compiler, code}
-
-	pop = serv_list.pop_index(0)
-		
-	if pop[0]:
-		print("error: ",pop[1])
-		return
-	else:
-		return pop[1]
-
-
-	
-# 改到 exec  主機
-	for element in elephant_from_serv:
-		code = (open(""+element[2]+element[3]))
-		print(code)
-		packet=json.dumps({'room_name':element[0],'log_id':element[1],\
-		'user_id':element[2],'game_lib_id':element[3],'compiler':element[4],\
-		'code':code,'path':element[5],'filename':element[6]})
-		
-	global game_exec_id,server
-	server.send_message(game_exec_id,packet)
-
 class MaxSizeList(object):
 
 	def __init__(self, max_length):
@@ -185,18 +157,17 @@ def message_received(client, server, message):
 	print("Client(%d) said: %s" % (client['id'], message))
 	global game_exec_id
 	data = json.loads(message)
+	
 	if data['from']=='webserver':
-		
 		global webserver_id
 		webserver_id = client
 		code_address(server,data)
 
 	elif data['from']=='game_exec':
 		game_exec_id = client
-		go_exec_item = game_exec()
-		server.send_message(game_exec_id,)
+		go_exec_item = serv_list.pop_index(0)
+		server.send_message(game_exec_id, go_exec_item)
 		print("game_exec")
-
 
 	elif data['from']=='game':
 		print("gameover")
