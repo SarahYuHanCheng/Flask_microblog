@@ -11,106 +11,70 @@ servs_full_right=1
 
 server = WebsocketServer(6005, host='127.0.0.1')
 
-def movetoserv_q(i,st):
-	# 將room_q中第i個(到齊的)element移到 serv_q, 並執行 serv_q的第一個 element
-	# 並比對i後面的 element是否為同一房間,是的話也同上一步驟
-	
-	room_list=room_q.get_list()
-	serv_q.push(st,'s')
-	for j in range(i,len(room_list)): #find the same room
-		if room_list[i][0]==st[0]:
-			serv_q.push(room_list[i],'s')
-			room_list.pop(i)
-			game_exec(serv_q.pop_first('s'))
-
-def game_exec(st):
-	# 接收 serv_q的 element, 用 ws傳給 exec主機
+def game_exec(elephant_from_serv):
+	# game_exec端有空的主機,就會回來polling gameserver, 在 msg_recv被 call
+	# 接收 serv_q的 elephant, for將elephant的 element 用 ws傳給 exec主機
 	# (game_exec_id 為 exec主機在 ws server上註冊的 client_id)
 	# 將 element解開逐一放進json dict裡, 增加 code
 	# {room_name, log_id, user_id, compiler, code}
+
+	pop = serv_list.pop_index(0)
+		
+	if pop[0]:
+		print("error: ",pop[1])
+		return
+	else:
+		return pop[1]
+
+
+	
+# 改到 exec  主機
+	for element in elephant_from_serv:
+		code = (open(""+element[2]+element[3]))
+		print(code)
+		packet=json.dumps({'room_name':element[0],'log_id':element[1],\
+		'user_id':element[2],'game_lib_id':element[3],'compiler':element[4],\
+		'code':code,'path':element[5],'filename':element[6]})
+		
 	global game_exec_id,server
-	code = (open(""+st[2]+st[3]))
-	print(code)
-	packet=json.dumps({'room_name':st[0],'log_id':st[1],'user_id':st[2],'game_lib_id':st[3],'compiler':st[4],'code':code,'path':st[5],'filename':st[6]})
 	server.send_message(game_exec_id,packet)
 
 class MaxSizeList(object):
-	# room_q, serv_q皆使用此 list, push和 pop_first會依身份有不同的操作
-	# push:同room會放一起,同時檢查是否到齊, 若到齊會將該room的第一個 element丟到 serv_q,(若 serv_q已滿,無法送出, 則將這些已到齊的 element移到room_q的第一位置)
-	# pop_first: 1. game_exec呼叫serv_q的 pop 2. serv_q有空位, call room_q的pop
+
 	def __init__(self, max_length):
 		self.max_length = max_length
 		self.ls = []
 
-	def push(self, st,qclass):
-		global servs_full,servs_full_right
-		if len(self.ls) == self.max_length:
-			if qclass=='s':
-				while not servs_full_right:
-					pass
-				servs_full_right=0 # lock for others
-				servs_full=1
-			return 1
-		if qclass=='s':
-			servs=self.ls
-			servs.append(st)
-			return 0
-		else:
-		# find same room, pop playerlist, 
-			rooms=self.ls
-			if len(rooms)==0:
-				rooms.append(st)
+	def push(self, st):
+		try:
+			if len(self.ls) == self.max_length:
+				raise EOFError("fulled")
+			else:
+				self.ls.append(st)
 				return 0
-			for i in range(0,len(rooms)):#R2
-				if st[0]==rooms[i][0]: #find same room
-					print('rooms[i][-1]:',rooms[i][-1]) # rooms[i][-1]== player_list
-					print('st[1]:',st[1])
-					(rooms[i][-1]).remove(st[1])
-					st[-1]=rooms[i][-1]
-					while not servs_full_right:
-						pass
-					servs_full_right=0
-					if not servs_full:
-						if len(rooms[i][-1])==0: #all arrived
-							movetoserv_q(i,st)
-						return 0
-					else:
-						rooms.insert(i+1,st)#add new upload to room
-						pass # not add to serv active, wait for serv notify
-					return 0
-				else:
-					pass
-			rooms.append(st)
-			return 0
+		except Exception as e:
+			print("push error: ",e)
+			return 1
 
-	def pop_first(self,qclass):
-		# room: 目前不會有此情況
-		# serv:
-		global servs_full, servs_full_right
-		while not servs_full_right: # 沒有serv_q的存取權
-			pass
-		servs_full_right=0 # 拿到serv_q的存取權, 將其設為 0不讓其他人(push)存取
-		if qclass=='s' and servs_full: # 有room 遊戲結束, serv_q pop後,接收一個room_q
-			servs_full_right=0
-			s_pop=self.ls.pop(0) # need pop first, cause push to it later
-			rs=room_q.get_list()
-			for i in range(0,len(rs)):#find the all arrived room, 1030 看不懂為什麼是 room_q?
-				if len(rs[i][3])==0:
-					movetoserv_q(i,rs[i])
-					return s_pop
-			servs_full=0
-			servs_full_right=1
-			return s_pop
-		elif qclass=='s': # serv_q 沒有滿, 代表room_q沒有已到齊的room要進 serv_q而排隊
-			s_pop=self.ls.pop(0)
-		else:
-			return self.ls.pop(0) #qclass==r 目前不會有此情況
+	def pop_index(self,i):
+		try:
+			if i > len(self.ls):
+				raise EOFError("empty")
+			else:
+				return [0,self.ls.pop(i)]
+		except Exception as e:
+			print("push error: ",e)
+			return [1,e]
+	
 	def get_list(self):
 		return self.ls
-	
 
-room_q=MaxSizeList(100)
-serv_q=MaxSizeList(50)
+	def get_len(self):
+		return len(self.ls)
+
+
+room_list=MaxSizeList(100)
+serv_list=MaxSizeList(50)
 
 def new_client(client, server):
 	msg1="Hey all, a new client has joined us"
@@ -135,6 +99,7 @@ def save_code(code,room_name,user_id,game_lib_id,language,path):
 		return filename
 	f.close()
 	return filename
+
 def set_language(language):
 	compiler = {
 		"c": ["gcc",".c"],
@@ -144,25 +109,71 @@ def set_language(language):
 	language_obj = compiler.get(language, "Invalid month")
 	return language_obj 
 
-def code_address(server,data):
-	# 先經過 sandbox, 將結果回傳給user, (確定要使用)再排進 room_q
-	global webserver_id,room_q
-	language_res = set_language(data['language'])
+def push_to_room_list(user_code_str):
+	# 將經過 sandbox的 code 放進 room_list, check是否到齊 若有到齊, return logid, 否則 return 0
+	if len(room_list.get_list()) == 0:
+		room_list.push(user_code_str)
+	else:
+		# lock
+		for i in range(0,len(room_list.get_list())):
+			if user_code_str[0]==room_list[i][0]: #find same room
+				(room_list[i][-1]).remove(user_code_str[1]) # rooms[i][-1]== player_list
+				user_code_str[-1]=room_list[i][-1] # update player_list
+				if len(user_code_str[-1])==0: # if all arrived
+					return i # arrived_index
+			else:
+				pass
+		room_list.push(user_code_str) # no same room, then append to the last
+	return 0
 	
+	
+def pop_code_in_room(i,the_log_id):
+	popped =[]
+	while room_list[i][0]==the_log_id:
+		pop = room_list.pop_index(i)
+		
+		if pop[0]:
+			print("error: ",pop[1])
+		else:
+			popped.append(pop[1])
+		i+=1
+	return popped#[len(popped),popped]
+
+def push_to_serv_list(elephant):
+	# 將 players_list push to server, update server_list_full 
+	if 	serv_list.push(elephant)< 1:
+		print(serv_list.get_list())
+		return 0
+	else:
+		print("serv_list is full, need to wait")
+		return 1
+
+
+
+def code_address(server,data):
+	# 先經過 sandbox, 將結果回傳給user, (確定要使用)再排進 room_list
+	global webserver_id,room_list
+	language_res = set_language(data['language'])
 	filename=save_code(data['code'],data['room_name'],data['user_id'],data['game_lib_id'],language_res[1],path)
 	# filename include .xxx
 	test_result = sandbox(language_res[0],path,filename)
-	if test_result[0]:
+	if test_result[0]: # 1: ok / 0: error 
 		msg=test_result[1]
-		try:
-			room_q.push([data['room_name'],data['user_id'],data['game_lib_id'],language_res[0],path,filename,data['player_list']],'r')
-			print("add to room_q successfully")
-		except Exception as e:
-			print("add to room_q with error: ",e)
+		
+		log_id_index = push_to_room_list([data['log_id'],data['user_id'],\
+		data['game_lib_id'],language_res[0],path,filename,data['player_list']]) # player_list must put on last
+		if log_id_index > 0: # arrived 
+			popped_codes_list = pop_code_in_room(log_id_index, data['log_id'])
+			push_to_serv_list(popped_codes_list)
+		else:
+			msg +=b"wait for other players..." 
+			print("wait for other players...")
+			return
 	else:
-		msg=b"ERROR, "+test_result[1]
+		msg =b"sandbox error output: ", test_result[1]
+		print("sandbox error output: ", test_result[1])	
 
-	server.send_message(webserver_id,msg.decode('utf-8'))
+	server.send_message(webserver_id,msg.decode('utf-8')) # 回傳程式碼處理結果給user
 
 def message_received(client, server, message):
 	# ws server的client 來源有2: 1. webserver 2. gamemain
@@ -180,12 +191,15 @@ def message_received(client, server, message):
 		webserver_id = client
 		code_address(server,data)
 
+	elif data['from']=='game_exec':
+		game_exec_id = client
+		go_exec_item = game_exec()
+		server.send_message(game_exec_id,)
+		print("game_exec")
+
 
 	elif data['from']=='game':
 		print("gameover")
-	elif data['from']=='game_exec':
-		game_exec_id = client
-		print("game_exec")
 					
 
 def sandbox(compiler,path_, filename):
