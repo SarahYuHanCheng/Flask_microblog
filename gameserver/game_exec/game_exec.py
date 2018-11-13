@@ -6,7 +6,7 @@ import json, sys,os
 import subprocess
 
 ws = create_connection("ws://localhost:6005")
-serv_status=[] * 5
+serv_status=[0] * 5
 
 def aws_container(log_id,userId,compiler,path_, filename):
 	# 用 subprocess將欲執行的檔名當參數,執行 exec_script.sh, 使產生 docker container 來執行程式碼,指令如下 
@@ -68,19 +68,26 @@ def merge_com_lib(code,path,filename,compiler):
 # msg_handler(recv_msg)
 # merge_com_lib(recv_msg['code'], recv_msg['path'],recv_msg['filename'],recv_msg['compiler'])
 
-print("Received '%s'" % recv_msg)
 
 import sched, time
 s = sched.scheduler(time.time, time.sleep)
-    
-def check_serv_status(sc):
-	global serv_status
-	lst = [i for i,x in enumerate(serv_status) if x==0]
-	if len(lst) > 0:
-		ws.send(json.dumps({'from':"game_exec"}))
-		recv_msg = ws.recv()
-		msg_handler(recv_msg)
-	s.enter(60, 1, check_serv_status, (sc,))
+serv_status=[0] * 5
+serv_status.append(1)
+serv_status.insert(2,1)
+serv_status.insert(5,1)
+#[0, 0, 1, 0, 0, 1, 0, 1]
+def get_serv_index(_lst):
 
-s.enter(60, 1, check_serv_status, (s,))
+	if len(_lst) > 0:
+		index = _lst.pop(0)
+		serv_status[index]= 1#log_id, serve for which log
+		print('serv_index: ',index)
+
+def check_serv_status():
+	lst = [i for i,x in enumerate(serv_status) if x==0]
+	get_serv_index(lst)
+	s.enter(1, 1, check_serv_status)
+
+s.enter(1, 1, check_serv_status)
+# scheduler.enter(delay, priority, action, argument=(), kwargs={})
 s.run()
