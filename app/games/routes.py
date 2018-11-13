@@ -151,7 +151,7 @@ def room_wait(log_id):
 	
 	if choose_form.validate_on_submit():
 		if l.status is 0:
-			return redirect(url_for('games.game_view',logId=l.id))
+			return redirect(url_for('games.game_view',log_id=l.id))
 	
 
 
@@ -162,12 +162,12 @@ def room_wait(log_id):
 
 @bp.route('/game_view/<int:log_id>', methods=['GET','POST'])
 @login_required
-def game_view(logId):
+def game_view(log_id):
 	# 比賽畫面
 	comment_form = CommentCodeForm() #current_log.id
 	name = session.get('name', '')
 	room = session.get('room', '')
-	print("logId",logId)
+	print("logId",log_id)
 	log_id = session.get('log_id', '')
 	print("log_id",log_id)
 
@@ -176,7 +176,7 @@ def game_view(logId):
 		if name == '' or room == '':
 			return redirect(url_for('.index'))
 
-		current_code=logId
+		current_code=log_id
 		page = request.args.get('page', 1, type=int)
 		# comments = Comment.query.filter_by(code_id = current_code).order_by(Comment.timestamp.desc()).paginate(
 		# page, current_app.config['POSTS_PER_PAGE'], False)
@@ -187,11 +187,11 @@ def game_view(logId):
 		# if comments.has_prev else None
 		# return render_template('games/game_view.html',logId=current_log, title='Commit Code',
 		#					comment_form=comment_form,comments=comments.items, name=name, room=room) #next_url=next_url, prev_url=prev_url
-		return render_template('games/game/game_view.html',logId=current_log, title='Commit Code',
+		return render_template('games/game/game_view.html',log_id=current_log, title='Commit Code',
 						   comment_form=comment_form, name=name, room=room,box_res="default")
 		
 	elif comment_form.validate_on_submit():
-		current_code=logId
+		current_code=log_id
 		# comment = Comment(code_id=current_code, body=comment_form.body.data)#comment_form.code_id.data
 		# db.session.add(comment)
 		# db.session.commit()
@@ -241,7 +241,7 @@ def index():
 	if form.validate_on_submit():
 		session['name'] = form.name.data
 		session['room'] = form.room.data
-		return redirect(url_for('.game_view',logId=current_log))
+		return redirect(url_for('.game_view',log_id=current_log))
 	elif request.method == 'GET':
 		form.name.data = session.get('name', '')
 		form.room.data = session.get('room', '')
@@ -252,9 +252,9 @@ def index():
 	   
 	return render_template('games/index/index.html', form=form,wait_rooms=wait_rooms,gaming_room=gaming_room)
 
-@bp.route('/gameover/<logId>', methods=['GET','POST'])
+@bp.route('/gameover/<log_id>', methods=['GET','POST'])
 @login_required
-def gameover(logId):
+def gameover(log_id):
 	# event.py收到gameserver的 'score'訊息後, redirect到此遊戲結束的 route, update log, 顯示分數
 	# get record_content from gameserver or local var ?
 	# record display in many jpeg 為學習影像處理存擋, 也用來做回顧播放

@@ -60,16 +60,13 @@ def save_code(code,room_name,user_id,game_lib_id,language,path):
 		os.makedirs( path )
 	except:
 		pass
-	f = open("%s%s"%(path,filename), "w") 
-	f.write(code+'\n')
-	with open('%s%s%s'%(path,game_lib_id,language)) as fin: # lib應該是改取資料庫, 而非開文件
-		lines = fin.readlines() 
-		for i, line in enumerate(lines):
-			if i >= 0 and i < 6800:
-				f.write(line)
-		f.close()
-		return filename
-	f.close()
+	with open("%s%s"%(path,filename), "w") as f:
+		f.write(code+'\n')
+		# with open('%s%s%s'%(path,game_lib_id,language)) as fin: # lib應該是改取資料庫, 而非開文件
+		# 	lines = fin.readlines() 
+		# 	for i, line in enumerate(lines):
+		# 		if i >= 0 and i < 6800:
+		# 			f.write(line)
 	return filename
 
 def set_language(language):

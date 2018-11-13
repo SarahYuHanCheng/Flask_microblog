@@ -2,3 +2,6 @@
 *venv
 *logs
 app/__init__.pyc
+*migrations
+app.db
+*.pem

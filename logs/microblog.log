@@ -1,52 +1,4 @@
-2018-10-16 11:06:04,609 ERROR: Exception on /auth/callback/facebook [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
-Traceback (most recent call last):
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
-    response = self.full_dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
-    reraise(exc_type, exc_value, tb)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
-    raise value
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
-    return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/auth/routes.py", line 94, in oauth_callback
-    print(friends['data'])
-TypeError: 'NoneType' object is not subscriptable
-2018-10-16 11:09:10,169 ERROR: Exception on /games/ [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
-Traceback (most recent call last):
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
-    response = self.full_dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
-    rv = self.handle_user_exception(e)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
-    reraise(exc_type, exc_value, tb)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
-    raise value
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
-    rv = self.dispatch_request()
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
-    return self.view_functions[rule.endpoint](**req.view_args)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 223, in index
-    return render_template('games/index.html', form=form)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 134, in render_template
-    return _render(ctx.app.jinja_env.get_or_select_template(template_name_or_list),
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 869, in get_or_select_template
-    return self.get_template(template_name_or_list, parent, globals)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 830, in get_template
-    return self._load_template(name, self.make_globals(globals))
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 804, in _load_template
-    template = self.loader.load(self, name, globals)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/loaders.py", line 113, in load
-    source, filename, uptodate = self.get_source(environment, name)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 58, in get_source
-    return self._get_source_fast(environment, template)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 86, in _get_source_fast
-    raise TemplateNotFound(template)
-jinja2.exceptions.TemplateNotFound: games/index.html
-2018-10-16 11:10:57,286 ERROR: Exception on /games/game_view/1 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+2018-11-11 14:57:52,637 ERROR: Exception on /games/room_wait/2 [POST] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
 Traceback (most recent call last):
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
     response = self.full_dispatch_request()
@@ -62,38 +14,88 @@ Traceback (most recent call last):
     return self.view_functions[rule.endpoint](**req.view_args)
   File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
     return func(*args, **kwargs)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 183, in game_view
-    comment_form=comment_form, name=name, room=room)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 135, in render_template
-    context, ctx.app)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 117, in _render
-    rv = template.render(context)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/asyncsupport.py", line 76, in render
-    return original_render(self, *args, **kwargs)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 1008, in render
-    return self.environment.handle_exception(exc_info, True)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/environment.py", line 780, in handle_exception
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 131, in room_wait
+    l.status = game_player_num - current_users_len
+TypeError: unsupported operand type(s) for -: 'result' and 'int'
+2018-11-11 14:59:37,220 ERROR: Exception on /games/room_wait/2 [POST] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+Traceback (most recent call last):
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
     reraise(exc_type, exc_value, tb)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/jinja2/_compat.py", line 37, in reraise
-    raise value.with_traceback(tb)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/games/game/game_view.html", line 2, in top-level template code
-    {% import 'bootstrap/wtf.html' as wtf %}
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/base.html", line 1, in top-level template code
-    {% extends 'bootstrap/base.html' %}
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_bootstrap/templates/bootstrap/base.html", line 1, in top-level template code
-    {% block doc -%}
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_bootstrap/templates/bootstrap/base.html", line 4, in block "doc"
-    {%- block html %}
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_bootstrap/templates/bootstrap/base.html", line 20, in block "html"
-    {% block body -%}
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_bootstrap/templates/bootstrap/base.html", line 23, in block "body"
-    {% block content -%}
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/base.html", line 48, in block "content"
-    {% block app_content %}{% endblock %}
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/templates/games/game/game_view.html", line 128, in block "app_content"
-    <div>{% include '/games/editor.html' %}</div>
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 58, in get_source
-    return self._get_source_fast(environment, template)
-  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/templating.py", line 86, in _get_source_fast
-    raise TemplateNotFound(template)
-jinja2.exceptions.TemplateNotFound: /games/editor.html
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
+    raise value
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
+    return func(*args, **kwargs)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 132, in room_wait
+    l.status = game_player_num[0] - current_users_len
+TypeError: unsupported operand type(s) for -: 'str' and 'int'
+2018-11-13 09:18:28,268 ERROR: Exception on /games/ [POST] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+Traceback (most recent call last):
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
+    raise value
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 244, in index
+    return redirect(url_for('.game_view',logId=current_log))
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/helpers.py", line 356, in url_for
+    return appctx.app.handle_url_build_error(error, endpoint, values)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2061, in handle_url_build_error
+    reraise(exc_type, exc_value, tb)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
+    raise value
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/helpers.py", line 345, in url_for
+    force_external=external)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/werkzeug/routing.py", line 1776, in build
+    raise BuildError(endpoint, values, method, self)
+werkzeug.routing.BuildError: Could not build url for endpoint 'games.game_view' with values ['logId']. Did you forget to specify values ['log_id']?
+2018-11-13 09:20:18,420 ERROR: Exception on /games/game_view/1 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+Traceback (most recent call last):
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
+    raise value
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
+    return func(*args, **kwargs)
+TypeError: game_view() got an unexpected keyword argument 'log_id'
+2018-11-13 09:21:33,997 ERROR: Exception on /games/game_view/1 [GET] [in /Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py:1761]
+Traceback (most recent call last):
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 2292, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1815, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1718, in handle_user_exception
+    reraise(exc_type, exc_value, tb)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/_compat.py", line 35, in reraise
+    raise value
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1813, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask/app.py", line 1799, in dispatch_request
+    return self.view_functions[rule.endpoint](**req.view_args)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/venv/lib/python3.6/site-packages/flask_login/utils.py", line 261, in decorated_view
+    return func(*args, **kwargs)
+  File "/Users/sarahcheng/Documents/Master/GRA/microblog/app/games/routes.py", line 179, in game_view
+    current_code=logId
+NameError: name 'logId' is not defined
