@@ -11,5 +11,4 @@ def run():
 			paddle_vel=-move_unit
 	else: 
 		paddle_vel=0
-		print("ball moves right, no need to move paddle1")#!/usr/bin/python
-
+		print("ball moves right, no need to move paddle1")
