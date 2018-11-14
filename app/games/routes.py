@@ -225,9 +225,10 @@ def commit_code():
 	current_code=code.id
 	game_lib_id=1
 	ws = create_connection("ws://localhost:6005")
-	ws.send(json.dumps({'from':'webserver','code':editor_content,'room_name':room,'logId':name,'user_id':current_user.id,'game_lib_id':game_lib_id,'language':"python",'player_list':[1,2]}))
-	result =  ws.recv()
-	print("Received '%s'" % result)
+	ws.send(json.dumps({'from':'webserver','code':editor_content,'log_id':1,'user_id':current_user.id,'category_id':1,'game_id':1,'language':"python"}))
+	# ws.send(json.dumps({'from':'webserver','code':editor_content,'room_name':room,'logId':name,'user_id':current_user.id,'game_lib_id':game_lib_id,'language':"python",'player_list':[1,2]}))
+	# result =  ws.recv() #  
+	# print("Received '%s'" % result)
 	ws.close()
 	
 	return redirect(url_for('games.game_view',logId=current_log,box_res=result))
