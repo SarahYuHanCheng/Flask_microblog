@@ -48,7 +48,8 @@ def create_game():
 	# 新增遊戲
 	form = CreateGameForm()
 	if form.validate_on_submit():
-		game = Game(user_id=form.user_id.data,gamename=form.gamename.data,descript=form.descript.data, game_lib=form.game_lib.data, example_code=form.example_code.data)
+		game = Game(user_id=form.user_id.data,gamename=form.gamename.data,descript=form.descript.data, player_num=form.player_num.data,category_id=form.category_id.data)
+		# game = Game(user_id=form.user_id.data,gamename=form.gamename.data,descript=form.descript.data, game_lib=form.game_lib.data, example_code=form.example_code.data)
 		db.session.add(game)
 		db.session.commit()
 
@@ -71,38 +72,23 @@ def create_game():
 @login_required
 def add_room():
 	# 開房間, add log data with game,user
-	choose_form = ChooseGameForm()
-	if choose_form.validate_on_submit():
-		print('game.data: ',choose_form.game.data) #確認 form data是否為 id
-		log = Log(game_id=choose_form.game.data)
+	add_form = AddRoomForm()
+	if add_form.validate_on_submit():
+		print('game.data: ',add_form.game.data) #確認 form data是否為 id
+		if add_form.privacy.data is 3:
+			players = (add_form.players_status.data).split(',')
+		else:
+			game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=add_form.game.data).first()
+			players = game_player_num[0]
+			print(type(players),players)
+		log = Log(game_id=add_form.game.data,privacy=add_form.privacy.data,status=players)
 		db.session.add(log)
 		log.current_users.append(current_user)
+		# 若是設定 privacy==friends(指定玩家), log.current_users.append((choose_form.player_list).split(','))
 		db.session.commit()
-		
+		return redirect(url_for('games.room_wait',log_id=log.id))
 
-
-	# if form.validate_on_submit():
-	# 	r_query=Room.query.filter_by(roomname=form.room_name.data).first()
-	# 	if r_query is None:
-	# 		room = Room(roomname=form.room_name.data)#, game_id=form.game_id.data, player_list=form.player_list.data,max_people=form.max_people.data
-	# 		db.session.add(room)
-	# 		db.session.commit()
-	# 		session['room_name']=room.id
-	# 	else:
-	# 		print("please change name")
-
-	# 	if isinstance(r_query, list):
-	# 		result = obj_to_json(r_query)
-	# 	elif getattr(r_query, '__dict__', ''):
-	# 		result = obj_to_json([r_query])
-	# 	else:
-	# 		result = {'result': r_query}
-	# 	room_result=json.dumps(result, cls=ComplexEncoder)
-	# 	flash('Congratulations, now start the room!')
-	# 	return redirect(url_for('games.room_wait'))#,form.game_id.data
-	# elif request.method == 'GET':
-	# 	form.room_name.data = session.get('name', '')
-	return render_template('games/room/add_room.html', title='add_room',form=choose_form)
+	return render_template('games/room/add_room.html', title='add_room',form=add_form)
 
 @bp.route('/room_wait/<int:log_id>', methods=['GET','POST'])
 @login_required
@@ -112,46 +98,50 @@ def room_wait(log_id):
 	# check log/privacy
 	
 	l= Log.query.filter_by(id=log_id).first()
-	p = l.privacy
-	s = l.status
 	join_form = JoinForm()
 	leave_form = LeaveForm()
 	choose_form = ChooseGameForm()
 
-	print('wait_room',p,s)
-	if p is 1: # public,可以
-		if s is not (0 or 1) : # room還沒滿,可以進來參賽(新增 player_in_log data, update user的 current_log)
+	print('wait_room',l.privacy,l.status)
+	if l.privacy is 1: # public,可以
+		if l.status is not 0 : # room還沒滿,可以進來參賽(新增 player_in_log data, update user的 current_log) # if s is not (0 or 1) :
 			if join_form.validate_on_submit():# 按下參賽按鈕
 				
 				current_user.current_log_id = log_id
 				db.session.commit()
 				current_users_len = len(l.current_users)
-				print(l.game_id)
-				game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=2).first()
+				print('l.game_id',l.game_id)
+				game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=l.game_id).first()
 				
 				l.status = int(game_player_num[0]) - current_users_len
 				l.current_users.append( current_user )
 				db.session.commit()
+
+				print("add user to room: ",l.current_users)
 				
+				if l.status is 0 :
+					return redirect(url_for('games.game_view',log_id=l.id))
+				else:
+					return redirect(url_for('games.room_wait',log_id=l.id))
 				
-			elif leave_form.validate_on_submit():
-				# 按下取消,退賽按鈕
-				l.current_users.remove( current_user )
-				current_user.current_log_id = ""
-				db.dession.commit()
-				print("leave")
-				return redirect(url_for('games.index'))
+			# elif leave_form.validate_on_submit():
+			# 	# 按下取消,退賽按鈕
+			# 	l.current_users.remove( current_user )
+			# 	current_user.current_log_id = ""
+			# 	db.dession.commit()
+			# 	print("leave")
+			# 	return redirect(url_for('games.index'))
 
 				# 單純觀賽
-	elif p is 2:# friend
+	elif l.privacy is 2:# friend
 		pass
 	else:# only invited
 		pass
 	
 	
-	if choose_form.validate_on_submit():
-		if l.status is 0:
-			return redirect(url_for('games.game_view',log_id=l.id))
+	# if choose_form.validate_on_submit():
+	# 	if l.status is 0:
+	# 		return redirect(url_for('games.game_view',log_id=l.id))
 	
 
 
@@ -214,24 +204,38 @@ def commit_code():
 	print("commit")
 	name = session.get('name', '')
 	room = session.get('room', '')# for gameserver to save exec code, not for db-code(no need to save room)  
-	log_id = session.get('logId', '')
+	log_id = session.get('log_id', '')
+	game_id = session.get('game_id', '')
 
 	editor_content = request.args.get('editor_content', 0, type=str)
 	commit_msg = request.args.get('commit_msg', 0, type=str)
-	code = Code(log_id=log_id, body=editor_content, commit_msg=commit_msg,game_id=name,user_id=current_user.id)
+	code = Code(log_id=log_id, body=editor_content, commit_msg=commit_msg,game_id=game_id,user_id=current_user.id)
 	db.session.add(code)
 	db.session.commit()
-	flash('Your code have been saved.')
-	current_code=code.id
-	game_lib_id=1
+
+	l=Log.query.filter_by(id=1).first()
+	players = l.current_users
+
+	player_list=[]
+	print("players: ",players)
+	for i,player in enumerate(players):
+		print("type:",type(player.id),type(current_user.id))
+		if player.id == current_user.id:
+			players.pop(i)
+			l.current_users=players
+			print("in condition,,,players_list: ",players)
+			db.session.commit()
+		else:
+			player_list.append(player.id)
 	ws = create_connection("ws://localhost:6005")
-	ws.send(json.dumps({'from':'webserver','code':editor_content,'log_id':1,'user_id':current_user.id,'category_id':1,'game_id':1,'language':"python"}))
+	ws.send(json.dumps({'from':'webserver','code':editor_content,'log_id':1,'user_id':current_user.id,'category_id':1,'game_id':1,'language':"python",'player_list':player_list}))
 	# ws.send(json.dumps({'from':'webserver','code':editor_content,'room_name':room,'logId':name,'user_id':current_user.id,'game_lib_id':game_lib_id,'language':"python",'player_list':[1,2]}))
-	# result =  ws.recv() #  
+	# result =  ws.recv() #
+	result="www"
 	# print("Received '%s'" % result)
 	ws.close()
 	
-	return redirect(url_for('games.game_view',logId=current_log,box_res=result))
+	return redirect(url_for('games.game_view',log_id=current_log,box_res=result))
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
@@ -242,6 +246,7 @@ def index():
 	if form.validate_on_submit():
 		session['name'] = form.name.data
 		session['room'] = form.room.data
+
 		return redirect(url_for('.game_view',log_id=current_log))
 	elif request.method == 'GET':
 		form.name.data = session.get('name', '')
@@ -259,9 +264,9 @@ def gameover(log_id):
 	# event.py收到gameserver的 'score'訊息後, redirect到此遊戲結束的 route, update log, 顯示分數
 	# get record_content from gameserver or local var ?
 	# record display in many jpeg 為學習影像處理存擋, 也用來做回顧播放
-	Log.query.filter_by(id=logId).update(dict(record_content=msg[1],score=msg[2],winner_id=msg[3]))
+	Log.query.filter_by(id=log_id).update(dict(record_content=msg[1],score=msg[2],winner_id=msg[3]))
 	# Log.query.filter_by(id=logId).update(dict(record_content='ooooo',score=300,winner_id=winner_id))
-	log=Log.query.with_entities(Log.game_id).filter_by(id=logId).first()
+	log=Log.query.with_entities(Log.game_id).filter_by(id=log_id).first()
 	db.session.commit()
 	print(Log.get_rank_list(Log,str(log[0])))# log[1]=game_id
 	return render_template('games/index.html', title='Register')
