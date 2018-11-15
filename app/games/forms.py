@@ -12,6 +12,7 @@ class ChooseGameForm(FlaskForm):
 	game =  SelectField('Game',# ) coerce=int
 		choices=[('1', 'maze'), ('2', 'pinpong'), ('3', 'shoot')])
 	user_id = HiddenField('User id', default=current_user)
+	player_list = TextAreaField('player_list')
 	start = SubmitField('Start Game')
 
 	# def __init__(self, arg):
@@ -36,8 +37,10 @@ class CreateGameForm(FlaskForm):
 	user_id = HiddenField('User id', default=current_user)
 	gamename = TextAreaField('gamename', validators=[DataRequired()])
 	descript = TextAreaField('descript', validators=[DataRequired()])
+	player_num = IntegerField('player_num')
+	category_id = IntegerField('category_id')
 
-	game_lib = TextAreaField('game_lib')#, validators=[DataRequired()]
+	game_lib_id = TextAreaField('game_lib_id')#, validators=[DataRequired()]
 	example_code = TextAreaField('example code')# , validators=[DataRequired()]
 	language = SelectField(
 		'Programming Language',
@@ -62,15 +65,14 @@ class CommentCodeForm(FlaskForm):
 	# 		if user is not None:
 	# 			raise ValidationError('Please use a different username.')
 class AddRoomForm(FlaskForm):
-    """Accepts a nickname and a room."""
-    name = StringField('UserName', validators=[DataRequired()])
-    room_name = StringField('GameRoomName', validators=[DataRequired()])
-  #   def validate_gamename(self, room_name):
-		# room = Room.query.filter_by(room_name=room_name.data).first()
-		# if room is not None:
-		# 	raise ValidationError('Please use a different roomname.')
-
-    submit = SubmitField('Enter Gameroom')
+	game_category = SelectField('Game Category',# ) coerce=int
+		choices=[('1', 'one player'), ('2', 'two players'), ('3','3 players')])
+	game =  SelectField('Game',# ) coerce=int
+		choices=[('1', 'maze'), ('2', 'pinpong'), ('3', 'shoot')])
+	user_id = HiddenField('User id', default=current_user)
+	privacy = IntegerField('privacy')
+	players_status = IntegerField('players_status')
+	submit = SubmitField('Enter Gameroom')
 	
 
   #   def validate_gamename(self, room_name):
