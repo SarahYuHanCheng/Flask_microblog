@@ -58,18 +58,21 @@ def push_to_room_list(user_code_str):
 	# 將經過 sandbox的 code 放進 room_list, check是否到齊 若有到齊, return logid, 否則 return 0
 	if len(room_list.get_list()) == 0:
 		room_list.push(user_code_str)
+		print("push_to_room_list ok")
 	else:
 		# lock
-		for i in range(0,len(room_list.get_list())):
-			if user_code_str[0]==room_list[i][0]: #find same room
-				(room_list[i][-1]).remove(user_code_str[1]) # rooms[i][-1]== player_list
-				user_code_str[-1]=room_list[i][-1] # update player_list
+		rooms = room_list.get_list()
+		for i in range(0,len(rooms)):
+			if user_code_str[0]==rooms[i][0]: #find same room
+				(rooms[i][-1]).remove(user_code_str[1]) # rooms[i][-1]== player_list
+				user_code_str[-1]=rooms[i][-1] # update player_list
 				if len(user_code_str[-1])==0: # if all arrived
+					print("arrived")
 					return i # arrived_index
 			else:
 				pass
 		room_list.push(user_code_str) # no same room, then append to the last
-	return 0
+	return -1
 	
 	
 def pop_code_in_room(i,the_log_id):
@@ -152,23 +155,23 @@ def code_address(server,data):
 	path, filename, compiler = save_code(data['code'],data['log_id'],data['user_id'],data['category_id'],data['game_id'],data['language'])
 	# filename include .xxx
 	test_result = sandbox(compiler,path,filename)
-	# if test_result[0]: # 1: ok / 0: error 
-	# 	msg=test_result[1]
+	if test_result[0]: # 1: ok / 0: error 
+		msg=test_result[1]
 		
-	# 	log_id_index = push_to_room_list([data['log_id'],data['user_id'],\
-	# 	data['game_lib_id'],language_res[0],path,filename,data['player_list']]) # player_list must put on last
-	# 	if log_id_index > 0: # arrived 
-	# 		popped_codes_list = pop_code_in_room(log_id_index, data['log_id'])
-	# 		push_to_serv_list(popped_codes_list)
-	# 	else:
-	# 		msg +=b"wait for other players..." 
-	# 		print("wait for other players...")
-	# 		return
-	# else:
-	# 	msg =b"sandbox error output: ", test_result[1]
-	# 	print("sandbox error output: ", test_result[1])	
+		log_id_index = push_to_room_list([data['log_id'],data['user_id'],\
+		data['category_id'],compiler,path,filename,data['player_list']]) # player_list must put on last
+		if log_id_index >= 0: # arrived 
+			popped_codes_list = pop_code_in_room(log_id_index, data['log_id'])
+			push_to_serv_list(popped_codes_list)
+		else:
+			msg +=b"wait for other players..." 
+			print("wait for other players...")
+			return
+	else:
+		msg =b"sandbox error output: "+ test_result[1]
+		print("sandbox error output: ", test_result[1])	
 
-	# server.send_message(webserver_id,msg.decode('utf-8')) # 回傳程式碼處理結果給user
+	server.send_message(webserver_id,msg.decode('utf-8')) # 回傳程式碼處理結果給user
 
 def message_received(client, server, message):
 	# ws server的client 來源有2: 1. webserver 2. gamemain
