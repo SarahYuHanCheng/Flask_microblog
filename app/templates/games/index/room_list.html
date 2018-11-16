@@ -23,7 +23,10 @@
                             <td>{{ w_room.game_id }}</td>
                             <td>online_people</td>
                             <td>max_people</td>
-                            <td><a href="{{ url_for('games.room_wait',log_id=w_room.id) }}">@mdo</a></td>
+                            <!-- <td><a href="{{ url_for('games.room_wait',log_id=w_room.id) }}">@mdo</a></td> -->
+                            <!-- <td><button onclick="'enterRoom('+ {{ w_room.id }}+')'" >@Enter</button></td> -->
+                            <td><button onclick="enterRoom( {{ w_room.id }} )" >Enter</button></td>
+                            <!-- <td><button onclick="'enterRoom(\'+ {{ w_room.id }}+'\'')'" >@Enter</button></td> -->
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -61,3 +64,8 @@
             </div>
         </div>
 </div>
+<script>
+    function enterRoom(room_id) {
+        console.log(typeof($(room_id)));
+    }
+</script>
