@@ -8,6 +8,7 @@ from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
 from websocket import create_connection
 import json, sys
+from flask_socketio import emit
 
 current_game = '3333'
 # print(current_log)
@@ -74,13 +75,11 @@ def add_room():
 	# 開房間, add log data with game,user
 	add_form = AddRoomForm()
 	if add_form.validate_on_submit():
-		print('game.data: ',add_form.game.data) #確認 form data是否為 id
 		if add_form.privacy.data is 3:
 			players = (add_form.players_status.data).split(',')
 		else:
 			game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=add_form.game.data).first()
 			players = game_player_num[0]
-			print(type(players),players)
 		log = Log(game_id=add_form.game.data,privacy=add_form.privacy.data,status=players)
 		db.session.add(log)
 		log.current_users.append(current_user)
@@ -96,58 +95,49 @@ def room_wait(log_id):
 	# client 進來後, check log/status, 若沒有 add player_in_log,  
 	# 等待玩家到齊就能 start game,''' 按下 btn('start game')''',切換到 game_view 
 	# check log/privacy
-	
-	l= Log.query.filter_by(id=log_id).first()
 	join_form = JoinForm()
-	leave_form = LeaveForm()
-	choose_form = ChooseGameForm()
+	if request.method == 'GET':
+		return render_template('games/room/room_wait.html', title='room_wait',join_form=join_form) #,game_name=room_game.name,game_p_num =room_game.player_num,game_img = room_game.img
+	else:
+		l= Log.query.filter_by(id=log_id).first()
+		
+		# leave_form = LeaveForm()
+		# choose_form = ChooseGameForm()
 
-	print('wait_room',l.privacy,l.status)
-	if l.privacy is 1: # public,可以
-		if l.status is not 0 : # room還沒滿,可以進來參賽(新增 player_in_log data, update user的 current_log) # if s is not (0 or 1) :
-			if join_form.validate_on_submit():# 按下參賽按鈕
-				
-				current_user.current_log_id = log_id
-				db.session.commit()
-				current_users_len = len(l.current_users)
-				print('l.game_id',l.game_id)
-				game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=l.game_id).first()
-				
-				l.status = int(game_player_num[0]) - current_users_len
-				l.current_users.append( current_user )
-				db.session.commit()
+		print('wait_room',l.privacy,l.status)
+		if l.privacy is 1: # public,可以
+			if l.status is not 0 : # room還沒滿,可以進來參賽(新增 player_in_log data, update user的 current_log) # if s is not (0 or 1) :
+				if join_form.validate_on_submit():# 按下參賽按鈕
+					
+					
+					game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=l.game_id).first()
+					l.current_users.append( current_user )
+					current_users_len = len(l.current_users)
+					l.status = int(game_player_num[0]) - current_users_len
+					current_user.current_log_id = log_id
+					db.session.commit()
+					print("user in room: ",l.current_users)
+					print('status:',l.status)
+					if l.status is 0 :
+						print("redirect to game_view")
+						emit('start', {'msg': 'start'},room= l.id)
+						return redirect(url_for('games.game_view',log_id=l.id))
+					else:
+						return redirect(url_for('games.room_wait',log_id=l.id))
+					
+				# elif leave_form.validate_on_submit():
+				# 	# 按下取消,退賽按鈕
+				# 	l.current_users.remove( current_user )
+				# 	current_user.current_log_id = ""
+				# 	db.dession.commit()
+				# 	print("leave")
+				# 	return redirect(url_for('games.index'))
 
-				print("add user to room: ",l.current_users)
-				
-				if l.status is 0 :
-					return redirect(url_for('games.game_view',log_id=l.id))
-				else:
-					return redirect(url_for('games.room_wait',log_id=l.id))
-				
-			# elif leave_form.validate_on_submit():
-			# 	# 按下取消,退賽按鈕
-			# 	l.current_users.remove( current_user )
-			# 	current_user.current_log_id = ""
-			# 	db.dession.commit()
-			# 	print("leave")
-			# 	return redirect(url_for('games.index'))
-
-				# 單純觀賽
-	elif l.privacy is 2:# friend
-		pass
-	else:# only invited
-		pass
-	
-	
-	# if choose_form.validate_on_submit():
-	# 	if l.status is 0:
-	# 		return redirect(url_for('games.game_view',log_id=l.id))
-	
-
-
-	# room_game = Game.query.filter_by(id=room.current_log_id).first()
-	
-	return render_template('games/room/room_wait.html', title='room_wait',join_form=join_form,leave_form=leave_form,choose_form=choose_form) #,game_name=room_game.name,game_p_num =room_game.player_num,game_img = room_game.img
+					# 單純觀賽
+		elif l.privacy is 2:# friend
+			pass
+		else:# only invited
+			pass
 
 
 @bp.route('/game_view/<int:log_id>', methods=['GET','POST'])
