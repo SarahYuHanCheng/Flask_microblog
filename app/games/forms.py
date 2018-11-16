@@ -13,7 +13,7 @@ class ChooseGameForm(FlaskForm):
 		choices=[('1', 'maze'), ('2', 'pinpong'), ('3', 'shoot')])
 	user_id = HiddenField('User id', default=current_user)
 	player_list = TextAreaField('player_list')
-	start = SubmitField('Start Game')
+	start = SubmitField('choose Game')
 
 	# def __init__(self, arg):
 	# 	super(StartGameForm, self).__init__()
@@ -70,7 +70,8 @@ class AddRoomForm(FlaskForm):
 	game =  SelectField('Game',# ) coerce=int
 		choices=[('1', 'maze'), ('2', 'pinpong'), ('3', 'shoot')])
 	user_id = HiddenField('User id', default=current_user)
-	privacy = IntegerField('privacy')
+	privacy =  SelectField('privacy',
+		choices=[('1', 'public'), ('2', 'friends'), ('3', 'invited')])
 	players_status = IntegerField('players_status')
 	submit = SubmitField('Enter Gameroom')
 	
