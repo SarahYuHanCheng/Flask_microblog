@@ -8,7 +8,7 @@ from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
 from websocket import create_connection
 import json, sys
-from flask_socketio import emit
+from .events import * # //in microblog.py
 
 current_game = '3333'
 # print(current_log)
@@ -82,111 +82,28 @@ def add_room():
 			players = game_player_num[0]
 		log = Log(game_id=add_form.game.data,privacy=add_form.privacy.data,status=players)
 		db.session.add(log)
-		log.current_users.append(current_user)
 		# 若是設定 privacy==friends(指定玩家), log.current_users.append((choose_form.player_list).split(','))
 		db.session.commit()
-		return redirect(url_for('games.room_wait',log_id=log.id))
+		return redirect(url_for('games.wait_to_play',log_id=log.id))
+		# return redirect(url_for('games.room_wait',log_id=log.id))
 
 	return render_template('games/room/add_room.html', title='add_room',form=add_form)
 
-@bp.route('/room_wait/<int:log_id>', methods=['GET','POST'])
+
+@bp.route('/wait_to_play/<int:log_id>', methods=['GET','POST'])
 @login_required
-def room_wait(log_id):
-	# client 進來後, check log/status, 若沒有 add player_in_log,  
-	# 等待玩家到齊就能 start game,''' 按下 btn('start game')''',切換到 game_view 
-	# check log/privacy
+def wait_to_play(log_id):
 	join_form = JoinForm()
-	if request.method == 'GET':
-		return render_template('games/room/room_wait.html', title='room_wait',join_form=join_form) #,game_name=room_game.name,game_p_num =room_game.player_num,game_img = room_game.img
-	else:
-		l= Log.query.filter_by(id=log_id).first()
-		
-		# leave_form = LeaveForm()
-		# choose_form = ChooseGameForm()
-
-		print('wait_room',l.privacy,l.status)
-		if l.privacy is 1: # public,可以
-			if l.status is not 0 : # room還沒滿,可以進來參賽(新增 player_in_log data, update user的 current_log) # if s is not (0 or 1) :
-				if join_form.validate_on_submit():# 按下參賽按鈕
-					
-					
-					game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=l.game_id).first()
-					l.current_users.append( current_user )
-					current_users_len = len(l.current_users)
-					l.status = int(game_player_num[0]) - current_users_len
-					current_user.current_log_id = log_id
-					db.session.commit()
-					print("user in room: ",l.current_users)
-					print('status:',l.status)
-					if l.status is 0 :
-						print("redirect to game_view")
-						emit('start', {'msg': 'start'},room= l.id)
-						return redirect(url_for('games.game_view',log_id=l.id))
-					else:
-						return redirect(url_for('games.room_wait',log_id=l.id))
-					
-				# elif leave_form.validate_on_submit():
-				# 	# 按下取消,退賽按鈕
-				# 	l.current_users.remove( current_user )
-				# 	current_user.current_log_id = ""
-				# 	db.dession.commit()
-				# 	print("leave")
-				# 	return redirect(url_for('games.index'))
-
-					# 單純觀賽
-		elif l.privacy is 2:# friend
-			pass
-		else:# only invited
-			pass
+	print("wait_to_play ",log_id)
+	
 
 
-@bp.route('/game_view/<int:log_id>', methods=['GET','POST'])
-@login_required
-def game_view(log_id):
-	# 比賽畫面
-	comment_form = CommentCodeForm() #current_log.id
-	name = session.get('name', '')
-	room = session.get('room', '')
-	print("logId",log_id)
-	log_id = session.get('log_id', '')
-	print("log_id",log_id)
 
-	if request.method == 'GET':
-		print("log_id",log_id)
-		if name == '' or room == '':
-			return redirect(url_for('.index'))
+	return render_template('games/game/spa.html', title='wait_play_commit',join_form=join_form,room_id=log_id)
 
-		current_code=log_id
-		page = request.args.get('page', 1, type=int)
-		# comments = Comment.query.filter_by(code_id = current_code).order_by(Comment.timestamp.desc()).paginate(
-		# page, current_app.config['POSTS_PER_PAGE'], False)
 
-		# next_url = url_for('games.game_view', page=comments.next_num, logId=current_log) \
-		# if comments.has_next else None
-		# prev_url = url_for('games.game_view',page = comments.prev_num, logId=current_log) \
-		# if comments.has_prev else None
-		# return render_template('games/game_view.html',logId=current_log, title='Commit Code',
-		#					comment_form=comment_form,comments=comments.items, name=name, room=room) #next_url=next_url, prev_url=prev_url
-		return render_template('games/game/game_view.html',log_id=current_log, title='Commit Code',
-						   comment_form=comment_form, name=name, room=room,box_res="default")
-		
-	elif comment_form.validate_on_submit():
-		current_code=log_id
-		# comment = Comment(code_id=current_code, body=comment_form.body.data)#comment_form.code_id.data
-		# db.session.add(comment)
-		# db.session.commit()
-		flash('Your code have been saved.')
-	else:
-		print(request.method)
-		if request.args.get('box_res') :
-			box_res = request.args.get('box_res')
-			print("res ok",box_res)
-		else: 
-			box_res='defult'
-			print("res no")
-		return render_template('games/game/game_view.html',logId=current_log, title='Commit Code',
-						   comment_form=comment_form, name=name, room=room,box_res=box_res)
-		
+
+
 @bp.route('/commit_code', methods=['GET','POST'])
 @login_required
 def commit_code():
