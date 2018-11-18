@@ -52,18 +52,17 @@ def new_client(client, server):
 	msg1="Hey all, a new client has joined us"
 	# server.send_message(client,msg1)
 
-
-
 def push_to_room_list(user_code_str):
 	# 將經過 sandbox的 code 放進 room_list, check是否到齊 若有到齊, return logid, 否則 return 0
 	if len(room_list.get_list()) == 0:
 		room_list.push(user_code_str)
-		print("push_to_room_list ok")
+		print("push_to_room_list ok: ",user_code_str)
 	else:
 		# lock
 		rooms = room_list.get_list()
 		for i in range(0,len(rooms)):
 			if user_code_str[0]==rooms[i][0]: #find same room
+				print("user_code_str[1]",user_code_str[1])
 				(rooms[i][-1]).remove(user_code_str[1]) # rooms[i][-1]== player_list
 				user_code_str[-1]=rooms[i][-1] # update player_list
 				if len(user_code_str[-1])==0: # if all arrived
@@ -72,12 +71,14 @@ def push_to_room_list(user_code_str):
 			else:
 				pass
 		room_list.push(user_code_str) # no same room, then append to the last
+		print("push_to_room_list ok: ",user_code_str)
 	return -1
 	
 	
 def pop_code_in_room(i,the_log_id):
 	popped =[]
-	while room_list[i][0]==the_log_id:
+	rooms = room_list.get_list()
+	while rooms[i][0]==the_log_id:
 		pop = room_list.pop_index(i)
 		
 		if pop[0]:
@@ -97,26 +98,26 @@ def push_to_serv_list(elephant):
 		return 1
 
 
-
 def sandbox(compiler,path_, filename):
 	# 用 subprocess將預測試的檔名當參數執行 script.sh, 使產生 docker container 來驗證程式碼,指令如下 
 	# sh test.sh cce238a618539(imageID) python3.7 output.py 
 	
 	from subprocess import Popen, PIPE
 	image='cce238a618539'
-	try:
-		p = Popen('sh sandbox/script.sh ' + image + ' ' + compiler + ' ' + path_ + ' '+ filename + '',shell=True, stdout=PIPE, stderr=PIPE)
-		stdout, stderr = p.communicate()
-		print('stdout:', stdout)
-		if stderr:
-			print('stderr:', stderr)
-			return [0,stderr]
-		else:
-			print('stdout:', stdout)
-			return [1,stdout]
-	except Exception as e:
-		print('e: ',e)
-		return e
+	# try:
+	# 	p = Popen('sh sandbox/script.sh ' + image + ' ' + compiler + ' ' + path_ + ' '+ filename + '',shell=True, stdout=PIPE, stderr=PIPE)
+	# 	stdout, stderr = p.communicate()
+	# 	print('stdout:', stdout)
+	# 	if stderr:
+	# 		print('stderr:', stderr)
+	# 		return [0,stderr]
+	# 	else:
+	# 		print('stdout:', stdout)
+	# 		return [1,stdout]
+	# except Exception as e:
+	# 	print('e: ',e)
+	# 	return e
+	return [1,'stderr']
 
 def save_code(code,log_id,user_id,category_id,game_id,language):
 	# data['code'],data['log_id'],data['user_id'],data['category_id'],data['game_id'],data['language']
@@ -160,18 +161,18 @@ def code_address(server,data):
 		
 		log_id_index = push_to_room_list([data['log_id'],data['user_id'],\
 		data['category_id'],compiler,path,filename,data['player_list']]) # player_list must put on last
-		if log_id_index >= 0: # arrived 
-			popped_codes_list = pop_code_in_room(log_id_index, data['log_id'])
-			push_to_serv_list(popped_codes_list)
-		else:
-			msg +=b"wait for other players..." 
-			print("wait for other players...")
-			return
+		# if log_id_index >= 0: # arrived 
+		# 	popped_codes_list = pop_code_in_room(log_id_index, data['log_id'])
+		# 	push_to_serv_list(popped_codes_list)
+		# else:
+		# 	msg +="wait for other players..." 
+		# 	print("wait for other players...")
+			
 	else:
-		msg =b"sandbox error output: "+ test_result[1]
+		msg ="sandbox error output: "+ test_result[1]
 		print("sandbox error output: ", test_result[1])	
 
-	server.send_message(webserver_id,msg.decode('utf-8')) # 回傳程式碼處理結果給user
+	server.send_message(webserver_id,"msg.encode().decode('utf-8')") # 回傳程式碼處理結果給user
 
 def message_received(client, server, message):
 	# ws server的client 來源有2: 1. webserver 2. gamemain
