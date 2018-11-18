@@ -313,7 +313,7 @@ class Game(db.Model):
         
         code_list = Code.query.filter_by(game_id = self.id).order_by(Game.timestamp.desc())
         return code_list
-class game_lib(db.Model):
+class Game_lib(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     level = db.Column(db.Integer)
