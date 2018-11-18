@@ -2,8 +2,10 @@ from flask import session,redirect, url_for
 from flask_socketio import emit, join_room, leave_room
 from .. import socketio # //in microblog.py
 from flask_login import current_user
-from app.models import User, Game, Log, Code
+from app.models import User, Game, Log, Code,Game_lib
 from app import db
+from websocket import create_connection
+import json
 
 @socketio.on('connect', namespace='/test')
 def new_connect():
@@ -29,6 +31,7 @@ def joined(message):
     """Sent by clients when they enter a room.
     A status message is broadcast to all people in the room."""
     log_id = message['room'] #session.get('room') 
+    session['log_id']=log_id
     join_room(log_id)
     l= Log.query.filter_by(id=log_id).first()
     print("log",l.privacy,l.status)
@@ -36,18 +39,12 @@ def joined(message):
         if l.status is not 0 : # room還沒滿,可以進來參賽(新增 player_in_log data, update user的 current_log) # if s is not (0 or 1) :
         
             game_player_num = Game.query.with_entities(Game.player_num).filter_by(id=l.game_id).first()
-            print("l.current_users:",l.current_users)
             l.current_users.append( current_user )
-            print("l.current_users after:",l.current_users)
             current_users_len = len(l.current_users)
-            print('after append',current_users_len)
             l.status = int(game_player_num[0]) - current_users_len
             current_user.current_log_id = log_id
             db.session.commit()
-            print("user in room: ",l.current_users)
-            print('status:',l.status)
             if l.status is 0 :
-                print("redirect to game_view")
                 emit('arrived', {'msg': current_user.id},namespace = '/test',room= log_id)
                 
             # 單純觀賽
@@ -55,7 +52,39 @@ def joined(message):
             pass
         else:# only invited
             pass
-   
+
+@socketio.on('commit' ,namespace = '/test')
+def commit_code(message):
+    print("commit_code")
+    log_id = session.get('log_id', '')
+    l=Log.query.filter_by(id=log_id).first()
+    editor_content = message['code']
+    commit_msg =  message['commit_msg']
+        
+    code = Code(log_id=log_id, body=editor_content, commit_msg=commit_msg,game_id=l.game_id,user_id=current_user.id)
+    db.session.add(code)
+    db.session.commit()
+    game = Game.query.filter_by(id=l.game_id).first()
+    glanguage = Game_lib.query.with_entities(Game_lib.language_id).filter_by(id=game.game_lib_id).first()
+
+    players = l.current_users
+    player_list = []
+
+    # player_list 原因, TypeError: Object of type 'User' is not JSON serializable
+    # gameserver那邊, 如果 player_list已空 表示 arrived
+    for i,player in enumerate(players):
+        if player.id == current_user.id:
+            print("no append ",player.id)
+        else:
+            print("append: ",player.id)
+            player_list.append(player.id)
+
+    ws = create_connection("ws://localhost:6005")
+    ws.send(json.dumps({'from':'webserver','code':editor_content,'log_id':log_id,'user_id':current_user.id,'category_id':game.category_id,'game_id':l.game_id,'language':glanguage[0],'player_list':player_list}))
+    result =  ws.recv() #
+    print("Received '%s'" % result)
+    ws.close()
+    
 
 @socketio.on('text' ,namespace = '/test')
 def text(message):

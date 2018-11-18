@@ -3,10 +3,10 @@ var socket;
 var left_buff=[],right_buff=[],ball_buff=[];
 var buff_min=20,buff_normal=50;
 
+namespace = '/test';
+socket = io.connect('http://' + document.domain + ':' + location.port+namespace );
 
 $(document).ready(function(){
-    namespace = '/test';
-    socket = io.connect('http://' + document.domain + ':' + location.port+namespace );
 
     socket.on('arrived', function(data) {
         console.log("arrived:",data.msg)
@@ -44,9 +44,31 @@ $(document).ready(function(){
         socket.emit('join', {room: $('#join_room').val()});
         return false;
     });
+    $('form#commit').submit(function(event) {
+        var editor_content=editor.getValue();
+        var commit_msg = document.getElementById('commit_msg').value; 
+        socket.emit('commit', {code: editor_content,commit_msg:commit_msg});
+        return false;
+    });
+    
 
 });
-
+var editor = ace.edit("editor");
+editor.setTheme("ace/theme/twilight");
+editor.session.setMode("ace/mode/javascript");
+function changeMode(){
+    console.log("changeMode")
+    var mode = document.getElementById('mode').value;
+    editor.session.setMode("ace/mode/"+ mode);
+    var contents = {
+        javascript: 'alert("Write something here...");',
+        json: '{"value": "Write something here..."}',
+        python: 'def function():\n ',
+        xml: '<value attr="something">Write something here...</value>'
+    };
+    editor.setValue(contents[mode]);
+    
+}
 
 function leave_room() {
     socket.emit('left', {}, function() {
@@ -87,6 +109,7 @@ function leave_room() {
 var startTime=new Date();
 var speed=10;
 var start_flag=0;
+
 setInterval(function(){
     
     if (ball_buff.length>buff_normal){ 

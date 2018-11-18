@@ -4,6 +4,9 @@
 {% block app_content %}
 <script language="JavaScript" type="text/javascript" src="{{ url_for('static', filename='jquery-3.3.1.js') }}"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
+<script src="{{
+    url_for('static', filename='src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8">
+    </script>
 <script src="{{ url_for('static', filename='game_socketio.js') }}"></script>
 
 <h1>room wait</h1>
@@ -40,7 +43,29 @@
         </div>
     </div>
     <div id="game_code">
-        <div>{% include '/games/game/editor.html' %}</div>
+        <label for="mode" class="control-label">Language Mode:</label>
+        <select id="mode" class="form-control"onChange="changeMode()">
+            <option>javascript</option>
+            <option>json</option>
+            <option>xml</option>
+            <option>python</option>
+        </select>
+        
+        <pre id="editor" style="height:255px">function foo(items) {
+            var i;
+            for (i = 0; i &lt; items.length; i++) {
+                alert("Ace Rocks " + items[i]);
+            }
+        }</pre>
+        <br>
+        <form method="POST" >
+                <!-- <form method="GET"> -->
+                        <input type="text" name="commit_msg" id="commit_msg" placeholder="use html form for all col">
+                        <!-- <input type="hidden" name="commit_msg" id="user_id" value="xxx"> -->
+                        <!-- <input type="hidden" name="commit_msg" id="log_id" value="xxx">-->
+                        <input type="submit" value="commit"  onclick="myFunction()"> 
+                </form>
+        
     </div>
 </div>
 {% endblock %}
