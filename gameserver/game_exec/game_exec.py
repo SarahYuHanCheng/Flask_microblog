@@ -24,10 +24,16 @@ def msg_handler(msg):
 	# 每個 element的 內容：[data['log_id'],data['user_id'],\
 	#	data['game_lib_id'],language_res[0],path,filename,data['player_list']]
 	# 開 subprocess 
-	for element in msg: # msg is elephant
+	msg_converted = json.loads(msg)
+	print(type(msg_converted))
+	print(msg_converted[0][2])
+	
+	for element in msg_converted: # msg is elephant
+		
 		code = (open(""+element[4]+element[5]))
-		print(code)
+		print('code:',code)
 		# 執行package
+		
 		merge_com_lib(code,element[4],element[5],element[3])
 		aws_container(element[0],element[1],element[3],element[4],element[5])
 
@@ -60,11 +66,12 @@ def game_over(index):
 
 def send_serv_index(index):
 
-	serv_status[index]= 1#log_id, serve for which log
 	print('send serv_index to gameserver: ',serv_status)
 	ws.send(json.dumps({'from':"game_exec",'serv_index':index}))
 	recv_msg = ws.recv() # get elephant
-	msg_handler(recv_msg)
+	if len(recv_msg) > 5:
+		serv_status[index]= 1#log_id, serve for which log
+		msg_handler(recv_msg)
 
 def check_serv_status():
 	for i,x in enumerate(serv_status):
