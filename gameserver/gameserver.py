@@ -3,8 +3,6 @@ from websocket_server import WebsocketServer
 
 import time
 import json,sys,os
-global path
-path="games/easy/codes/1029/"
 game_exec_id=0
 servs_full=0
 servs_full_right=1
@@ -16,6 +14,17 @@ class MaxSizeList(object):
 	def __init__(self, max_length):
 		self.max_length = max_length
 		self.ls = []
+
+	def insert(self, i, user_element):
+		try:
+			if len(self.ls) == self.max_length:
+				raise EOFError("fulled")
+			else:
+				self.ls.insert(i,user_element)
+				return 0
+		except Exception as e:
+			print("push error: ",e)
+			return 1
 
 	def push(self, st):
 		try:
@@ -56,45 +65,46 @@ def push_to_room_list(user_code_str):
 	# 將經過 sandbox的 code 放進 room_list, check是否到齊 若有到齊, return logid, 否則 return 0
 	if len(room_list.get_list()) == 0:
 		room_list.push(user_code_str)
-		print("push_to_room_list ok: ",user_code_str)
 	else:
 		# lock
 		rooms = room_list.get_list()
+		print(len(rooms))
 		for i in range(0,len(rooms)):
 			if user_code_str[0]==rooms[i][0]: #find same room
-				print("user_code_str[1]",user_code_str[1])
 				(rooms[i][-1]).remove(user_code_str[1]) # rooms[i][-1]== player_list
 				user_code_str[-1]=rooms[i][-1] # update player_list
 				if len(user_code_str[-1])==0: # if all arrived
-					print("arrived")
+					room_list.insert(i,user_code_str)
 					return i # arrived_index
 			else:
 				pass
 		room_list.push(user_code_str) # no same room, then append to the last
-		print("push_to_room_list ok: ",user_code_str)
+		
 	return -1
 	
 	
 def pop_code_in_room(i,the_log_id):
 	popped =[]
-	rooms = room_list.get_list()
-	while rooms[i][0]==the_log_id:
+	# _rooms = copy.copy(room_list.get_list())
+	_rooms = room_list.get_list()
+	while _rooms[i][0]== the_log_id:
 		pop = room_list.pop_index(i)
-		
 		if pop[0]:
 			print("error: ",pop[1])
 		else:
 			popped.append(pop[1])
-		i+=1
+			if len(_rooms) == 0:
+				break
+
+
+
 	return popped#[len(popped),popped]
 
 def push_to_serv_list(elephant):
 	# 將 players_list push to server, update server_list_full 
 	if 	serv_list.push(elephant)< 1:
-		print(serv_list.get_list())
 		return 0
 	else:
-		print("serv_list is full, need to wait")
 		return 1
 
 
@@ -117,7 +127,7 @@ def sandbox(compiler,path_, filename):
 	# except Exception as e:
 	# 	print('e: ',e)
 	# 	return e
-	return [1,'stderr']
+	return [1,'stdout']
 
 def save_code(code,log_id,user_id,category_id,game_id,language):
 	# data['code'],data['log_id'],data['user_id'],data['category_id'],data['game_id'],data['language']
@@ -161,18 +171,18 @@ def code_address(server,data):
 		
 		log_id_index = push_to_room_list([data['log_id'],data['user_id'],\
 		data['category_id'],compiler,path,filename,data['player_list']]) # player_list must put on last
-		# if log_id_index >= 0: # arrived 
-		# 	popped_codes_list = pop_code_in_room(log_id_index, data['log_id'])
-		# 	push_to_serv_list(popped_codes_list)
-		# else:
-		# 	msg +="wait for other players..." 
-		# 	print("wait for other players...")
+		if log_id_index >= 0: # arrived 
+
+			popped_codes_list = pop_code_in_room(log_id_index, data['log_id'])
+			print("popped_codes_list:",popped_codes_list)
+			push_to_serv_list(popped_codes_list)
+		else:
+			msg +="wait for other players..." 
 			
 	else:
 		msg ="sandbox error output: "+ test_result[1]
-		print("sandbox error output: ", test_result[1])	
-
-	server.send_message(webserver_id,"msg.encode().decode('utf-8')") # 回傳程式碼處理結果給user
+		
+	server.send_message(webserver_id,"received") # 回傳程式碼處理結果給user
 
 def message_received(client, server, message):
 	# ws server的client 來源有2: 1. webserver 2. gamemain
