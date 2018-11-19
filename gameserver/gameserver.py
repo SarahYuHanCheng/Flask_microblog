@@ -114,26 +114,33 @@ def sandbox(compiler,path_, filename):
 	
 	from subprocess import Popen, PIPE
 	image='cce238a618539'
-	# try:
-	# 	p = Popen('sh sandbox/script.sh ' + image + ' ' + compiler + ' ' + path_ + ' '+ filename + '',shell=True, stdout=PIPE, stderr=PIPE)
-	# 	stdout, stderr = p.communicate()
-	# 	print('stdout:', stdout)
-	# 	if stderr:
-	# 		print('stderr:', stderr)
-	# 		return [0,stderr]
-	# 	else:
-	# 		print('stdout:', stdout)
-	# 		return [1,stdout]
-	# except Exception as e:
-	# 	print('e: ',e)
-	# 	return e
-	return [1,'stdout']
+	try:
+		p = Popen('sh sandbox/script.sh ' + image + ' ' + compiler + ' ' + path_ + ' '+ filename + '',shell=True, stdout=PIPE, stderr=PIPE)
+		stdout, stderr = p.communicate()
+		if stderr:
+			print('stderr:', stderr)
+			return [0,stderr]
+		else:
+			print('stdout:', stdout)
+			return [1,stdout]
+	except Exception as e:
+		print('e: ',e)
+		return e
+def set_language(language):
+	compiler = {
+		"1": ["python3.7",".py"],
+		"2": ["gcc",".c"],
+		"3": ["sh",".sh"]
+	}
+	language_obj = compiler.get(language, "Invalid month")
+	return language_obj 
 
 def save_code(code,log_id,user_id,category_id,game_id,language):
 	# data['code'],data['log_id'],data['user_id'],data['category_id'],data['game_id'],data['language']
 	# 在呼叫 sandbox前 將程式碼依遊戲人數？分類？為路徑 加上 lib後 存於 gameserver並回傳檔名
 	# "w"上傳新的程式碼會直接取代掉
 	language_res = set_language(language)
+	print(language_res,language_res)
 	path = "%s/%s/%s/"%(category_id,game_id,language)
 	filename = "%s_%s%s"%(log_id,user_id,language_res[1])
 	try:
@@ -150,14 +157,7 @@ def save_code(code,log_id,user_id,category_id,game_id,language):
 		# 			f.write(line)
 	return path,filename,language_res[0]
 
-def set_language(language):
-	compiler = {
-		"c": ["gcc",".c"],
-		"python": ["python3.7",".py"],
-		"shell": ["sh",".sh"]
-	}
-	language_obj = compiler.get(language, "Invalid month")
-	return language_obj 
+
 
 def code_address(server,data):
 	# 先經過 sandbox, 將結果回傳給user, (確定要使用)再排進 room_list
@@ -167,7 +167,7 @@ def code_address(server,data):
 	# filename include .xxx
 	test_result = sandbox(compiler,path,filename)
 	if test_result[0]: # 1: ok / 0: error 
-		msg=test_result[1]
+		msg=test_result[1].decode('utf-8')
 		
 		log_id_index = push_to_room_list([data['log_id'],data['user_id'],\
 		data['category_id'],compiler,path,filename,data['player_list']]) # player_list must put on last
@@ -180,9 +180,9 @@ def code_address(server,data):
 			msg +="wait for other players..." 
 			
 	else:
-		msg ="sandbox error output: "+ test_result[1]
+		msg ="sandbox error output: "+ test_result[1].decode("utf-8")
 		
-	server.send_message(webserver_id,"received") # 回傳程式碼處理結果給user
+	server.send_message(webserver_id,msg) # 回傳程式碼處理結果給user
 
 def message_received(client, server, message):
 	# ws server的client 來源有2: 1. webserver 2. gamemain
@@ -203,8 +203,10 @@ def message_received(client, server, message):
 	elif data['from']=='game_exec':
 		game_exec_id = client
 		go_exec_item = serv_list.pop_index(0)
-		server.send_message(game_exec_id, go_exec_item)
-		print("game_exec")
+		if go_exec_item[0]:
+			server.send_message(game_exec_id, 'empty')
+		else:
+			server.send_message(game_exec_id, json.dumps(go_exec_item[1]))
 
 	elif data['from']=='game':
 		print("gameover")
