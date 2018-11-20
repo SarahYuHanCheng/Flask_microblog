@@ -61,7 +61,7 @@ while cnt>0:
 		print("no")
 		continue
 	else:
-		msg_recv = json.loads(data)
+		msg_recv = json.loads(data.decode())
 		# 判斷 msg 類型, gameinfo or gameover
 		# msg={'type':'info','content':tuple([ball,paddle1[1],paddle2[1],cnt])}
 		# msg={'type':'over','content':"www"}
