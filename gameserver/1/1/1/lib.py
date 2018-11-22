@@ -15,7 +15,7 @@ def gameover():
 
 print(s_sucess)
 connecttoserver = s.recv(2048)
-msg={'type':'connect','who':'P1','content':'in'}	
+msg={'type':'connect','who':who,'content':'in'}	
 str_ = json.dumps(msg)
 binary =str_.encode()
 s.send(binary)
@@ -40,8 +40,8 @@ def on_gameinfo(message):
 	communicate('info',paddle_vel)
 
 def communicate(type_class,content):
-	global paddle_vel,s
-	msg={'type':type_class,'who':'P1','content':content, 'cnt':cnt}
+	global paddle_vel,s,who
+	msg={'type':type_class,'who':who,'content':content, 'cnt':cnt}
 	
 	str_ = json.dumps(msg)
 	binary =str_.encode()
@@ -73,7 +73,7 @@ while cnt>0:
 			pass
 	cnt-=1
 
-msg_leave={'type':'disconnect','who':'P1','content':'0'}	
+msg_leave={'type':'disconnect','who':who,'content':'0'}	
 str_leave = json.dumps(msg_leave)
 binary_leave =str_leave.encode()
 s.send(binary_leave) 

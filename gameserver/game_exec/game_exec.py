@@ -2,8 +2,8 @@
 # over: kill docker and send msg to notify gameserver 
 
 from websocket import create_connection
-import json, sys,os
-import subprocess
+import json, sys,os,time
+import subprocess 
 
 ws = create_connection("ws://localhost:6005")
 serv_status=[0] * 5
@@ -13,8 +13,10 @@ def aws_container(log_id,userId,compiler,path_, filename):
 	# 用 subprocess將欲執行的檔名當參數,執行 exec_script.sh, 使產生 docker container 來執行程式碼,指令如下 
 	# sh test.sh cce238a618539(imageID) python3.7 output.py 
 	from subprocess import Popen, PIPE
+	print(compiler)
+	compiler='python3'
 	try:
-		userId = Popen(''+compiler+' '+path_+' '+filename+'',shell=True)
+		userId = Popen(''+compiler+' '+path_+filename+'',shell=True)
 		return 0
 	except Exception as e:
 		print('e: ',e)
@@ -26,12 +28,17 @@ def msg_handler(msg):
 	# 開 subprocess 
 	msg_converted = json.loads(msg)
 	print(type(msg_converted))
-	print(msg_converted[0][2])
+	print(msg_converted)
 	
-	for element in msg_converted: # msg is elephant
+	for i,element in enumerate(msg_converted): # msg is elephant
 		
-		code = (open(""+element[4]+element[5]))
-		print('code:',code)
+		if i==0:
+			aws_container(element[0],element[1],element[3],element[4],'gamemain.py')
+			time.sleep(8)
+		
+		with open(""+element[4]+element[5],'r+') as user_file:
+			code = user_file.read()
+			user_file.write("\nwho='P"+str(i+1)+"'\n")
 		# 執行package
 		
 		merge_com_lib(code,element[4],element[5],element[3])
@@ -43,6 +50,7 @@ def merge_com_lib(code,path,filename,compiler):
 	# save code: 
 	# path: category_id/game_id/language_id/
 	# filename: log_id/user_id
+	print("merge_com_lib")
 	try:
 		os.makedirs( path )
 	except:
