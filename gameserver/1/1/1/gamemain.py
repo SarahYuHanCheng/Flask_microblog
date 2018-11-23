@@ -5,9 +5,7 @@ from socketIO_client import SocketIO, LoggingNamespace
 
 
 bind_ip = '0.0.0.0'
-bind_port = 8800
-
-address = ('127.0.0.1', 8800)
+bind_port = 8802
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((bind_ip, bind_port))
 # server.connect(address)
@@ -65,8 +63,8 @@ def __init__():
 def send_to_webserver():
     global ball,paddle1,paddle2
     print("sendtoweb")
-    with SocketIO('127.0.0.1', 5000, LoggingNamespace) as socketIO:
-        socketIO.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2,'q1'])})#q1 log_id
+    # with SocketIO('127.0.0.1', 5000, LoggingNamespace) as socketIO:
+    #     socketIO.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2,'q1'])})#q1 log_id
 
 
 
