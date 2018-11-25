@@ -57,7 +57,7 @@
         <br>
         <form id="commit"  method="POST" action='#'>
                 <!-- <form method="GET"> -->
-                        <input type="text" name="commit_msg" id="commit_msg" placeholder="use html form for all col">
+                        <input type="text" name="commit_msg" id="commit_msg" placeholder="commit msg">
                         <!-- <input type="hidden" name="commit_msg" id="user_id" value="xxx"> -->
                         <!-- <input type="hidden" name="commit_msg" id="log_id" value="xxx">-->
                         <input type="submit" value="commit"  > 
@@ -68,6 +68,7 @@
 <script src="{{
     url_for('static', filename='src-noconflict/ace.js') }}" type="text/javascript" charset="utf-8">
     </script>
+<link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <script src="{{ url_for('static', filename='game_socketio.js') }}"></script>
 
 {% endblock %}
