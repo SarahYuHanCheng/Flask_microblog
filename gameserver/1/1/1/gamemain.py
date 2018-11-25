@@ -1,9 +1,9 @@
 #!/usr/bin/python
-import socket,json,time
+import socket,json,time,sys
 import threading,math, random
 from socketIO_client import SocketIO, BaseNamespace
 
-
+log_id = sys.argv[1]
 bind_ip = '0.0.0.0'
 bind_port = 8802
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,8 +49,6 @@ def ball_init(right):
 def __init__():
     global paddle1, paddle2, paddle1_move, paddle2_move, l_score, r_score  # these are floats
     global score1, score2  # these are ints
-    print('PAD_HEIGHT ',PAD_HEIGHT)
-    print('HALF_PAD_HEIGHT ',HALF_PAD_HEIGHT)
     paddle1 = [HALF_PAD_WIDTH - 1, HEIGHT // 2]
     paddle2 = [WIDTH + 1 - HALF_PAD_WIDTH, HEIGHT //2]
     l_score = 0
@@ -61,7 +59,7 @@ def __init__():
         ball_init(False)
 
 def send_to_webserver():
-    global ball,paddle1,paddle2
+    global ball,paddle1,paddle2,log_id
     print("sendtoweb")
     class WebNamespace(BaseNamespace):
         def on_aaa_response(self, *args):
@@ -69,7 +67,7 @@ def send_to_webserver():
 
     with SocketIO('192.168.55.160', 5000) as socketIO:
         Web_namespace = socketIO.define(WebNamespace, '/test')
-        Web_namespace.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2,'q1'])})#q1 log_id
+        Web_namespace.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2,log_id])})#q1 log_id
 
 
 

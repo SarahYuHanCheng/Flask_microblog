@@ -18,12 +18,12 @@ def game_over(message):
     print('end game',message['msg'])
     return redirect(url_for('games.gameover',room= message['msg'][3],msg= message['msg']))
 
-@socketio.on('connectfromgame',namespace = '/test')
+@socketio.on('connectfromgame',namespace='/test')
 def test_connect(message):
     # 接收來自 exec主機 gamemain傳送的訊息並再傳至browser
     # msg:??
     print(message['msg'])
-    emit('gameobject', {'msg': message['msg']},room= message['msg'][3])
+    emit('gameobject', {'msg': message['msg']},namespace = '/test',room= message['msg'][3])#,room= message['msg'][3]
 
 @socketio.on('join' ,namespace = '/test')
 def joined(message):
