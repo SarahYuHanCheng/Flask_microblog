@@ -19,7 +19,7 @@ $(document).ready(function(){
     });
 
     socket.on('gameobject', function(data) {
-        
+    
         left_buff.push(data.msg[1][1]);
         right_buff.push(data.msg[2][1]);
         ball_buff.push(data.msg[0]);
@@ -63,7 +63,20 @@ function changeMode(){
     var contents = {
         javascript: 'alert("Write something here...");',
         json: '{"value": "Write something here..."}',
-        python: 'def function():\n ',
+        python: '\
+def run():\n\
+    global paddle_vel,ball_pos,move_unit\n\
+    if (ball_pos[-1][0]-ball_pos[-2][0]) <0: \n\
+        print("ball moves left")\n\
+        if (ball_pos[-1][1]-ball_pos[-2][1]) >0:\n\
+            print("ball moves down")\n\
+            paddle_vel=move_unit\n\
+        elif (ball_pos[-1][1]-ball_pos[-2][1])<0:\n\
+            print("ball moves up")\n\
+            paddle_vel=-move_unit\n\
+    else: \n\
+        paddle_vel=0\n\
+        print("ball moves right, no need to move paddle1")\n',
         xml: '<value attr="something">Write something here...</value>'
     };
     editor.setValue(contents[mode]);
