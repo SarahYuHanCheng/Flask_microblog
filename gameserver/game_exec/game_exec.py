@@ -9,14 +9,15 @@ ws = create_connection("ws://localhost:6005")
 serv_status=[0] * 5
 recv_msg = ""
 
-def aws_container(log_id,userId,compiler,path_, filename):
+def aws_container(log_id, userId, compiler, path_, filename, link_dc):
 	# 用 subprocess將欲執行的檔名當參數,執行 exec_script.sh, 使產生 docker container 來執行程式碼,指令如下 
 	# sh test.sh cce238a618539(imageID) python3.7 output.py 
+	# link= logid_gamemain
 	from subprocess import Popen, PIPE
-	print(compiler)
-	compiler='python3'
+	image = "cce238a618539"
+	
 	try:
-		userId = Popen(''+compiler+' '+path_+filename+'',shell=True)
+		p = Popen('sh game_exec/exec_script.sh ' + image + ' ' + compiler + ' ' + path_ + ' '+ filename + ' '+ link_dc + ' '+log_id+ ' ',shell=True)
 		return 0
 	except Exception as e:
 		print('e: ',e)
@@ -25,16 +26,17 @@ def aws_container(log_id,userId,compiler,path_, filename):
 def msg_handler(msg):
 	# 每個 element的 內容：[data['log_id'],data['user_id'],\
 	#	data['game_lib_id'],language_res[0],path,filename,data['player_list']]
+	# ['3', 2, 1, 'python3.7', '1/1/1/', '3_2.py', []]
 	# 開 subprocess 
+	
 	msg_converted = json.loads(msg)
-	print(type(msg_converted))
-	print(msg_converted)
 	
 	for i,element in enumerate(msg_converted): # msg is elephant
 		
 		if i==0:
-			aws_container(element[0],element[1],element[3],element[4],'gamemain.py')
-			time.sleep(8)
+			
+			aws_container(element[0],element[1],element[3],element[4],"gamemain.py","0")
+			time.sleep(15)
 		
 		with open(""+element[4]+element[5],'r+') as user_file:
 			code = user_file.read()
@@ -42,7 +44,8 @@ def msg_handler(msg):
 		# 執行package
 		
 		merge_com_lib(code,element[4],element[5],element[3])
-		aws_container(element[0],element[1],element[3],element[4],element[5])
+		link_msg = element[0]+'gamemain.py'
+		aws_container(element[0],element[1],element[3],element[4],element[5],link_msg)
 
 def merge_com_lib(code,path,filename,compiler):
 	# "w"上傳新的程式碼會直接取代掉
@@ -50,7 +53,6 @@ def merge_com_lib(code,path,filename,compiler):
 	# save code: 
 	# path: category_id/game_id/language_id/
 	# filename: log_id/user_id
-	print("merge_com_lib")
 	try:
 		os.makedirs( path )
 	except:

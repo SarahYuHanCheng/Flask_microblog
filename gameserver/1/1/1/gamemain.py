@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import socket,json,time
 import threading,math, random
-from socketIO_client import SocketIO, LoggingNamespace
+from socketIO_client import SocketIO, BaseNamespace
 
 
 bind_ip = '0.0.0.0'
@@ -63,8 +63,13 @@ def __init__():
 def send_to_webserver():
     global ball,paddle1,paddle2
     print("sendtoweb")
-    # with SocketIO('127.0.0.1', 5000, LoggingNamespace) as socketIO:
-    #     socketIO.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2,'q1'])})#q1 log_id
+    class WebNamespace(BaseNamespace):
+        def on_aaa_response(self, *args):
+            print('on_aaa_response', args)
+
+    with SocketIO('192.168.55.160', 5000) as socketIO:
+        Web_namespace = socketIO.define(WebNamespace, '/test')
+        Web_namespace.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2,'q1'])})#q1 log_id
 
 
 

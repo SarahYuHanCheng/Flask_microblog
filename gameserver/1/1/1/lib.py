@@ -1,7 +1,7 @@
 #!/usr/bin/python
 import socket , time, json,sys
 
-address = ('172.17.0.2', 8803)  # 127.0.0.1
+address = (sys.argv[1], 8802)  # 127.0.0.1
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
   
 s_sucess=""

@@ -5,18 +5,15 @@ file=$4
 link=$5
 log_id=$6
 
-echo ii"$file"
-
 if [ "$link" -eq "0" ]; then
-	
-	cont=$(docker run --name "$log_id$file" -ti -d 41f2086aefd8 bash)
-    echo "$compiler"
+	cont=$(docker run --name "$log_id$file" --net="codegame" -ti -d 41f2086aefd8 bash)
+    echo gamemain"$compiler $file"
     docker cp $path$file "$cont":/$file
     docker exec -i "$cont" sh -c "$compiler $file"
 else
-	cont=$(docker run --name "$file" --link "$link" -ti -d "$image" bash)
-    echo "$path$file"the"$cont"
+    cont=$(docker run --name "$file" --net="codegame" -ti -d "$image" bash)
+    echo the link"$link"
     docker cp $path$file "$cont":/$file
-    docker exec -i "$cont" sh -c "$compiler $file"
+    docker exec -i "$cont" sh -c "$compiler $file $link"
 fi
 
