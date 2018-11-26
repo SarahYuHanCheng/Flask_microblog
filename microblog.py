@@ -1,5 +1,5 @@
 from app import create_app, db ,socketio
-from app.models import User, Post, Log, Comment, Code
+from app.models import User, Post, Log, Code
 
 app = create_app()
 # cli.register(app)
