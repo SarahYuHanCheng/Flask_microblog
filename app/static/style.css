@@ -54,3 +54,38 @@ body {
 	/*z-index: 1;
 	overflow: hidden;*/
 }
+.scores {
+	position: fixed;
+	/* top: 45px;
+	left: 12.5%;
+	width: 75%;
+	height: 48px;
+	overflow: hidden; */
+}
+.scores div:first-child {
+	position: relative;
+	display: inline-block;
+}
+
+#score {
+	display: none;
+}
+.left-score, .right-score {
+	font-size: 50px;
+	font-weight: bold;
+	width: 50%;
+	height: 100%;
+	text-align: center;
+	float: left;
+	font-family: monospace;
+	position: relative;
+	color: purple;
+	text-shadow: 
+	1px 0 pink,
+	0 1px pink,
+	-1px 0 pink,
+	0 -1px pink;
+}
+.right-score {
+	float: right;
+}

@@ -73,12 +73,12 @@ def send_to_webserver():
 
 def send_to_Players(instr):
 
-    global cnt,barrier,ball,paddle1,paddle2
+    global cnt,barrier,ball,paddle1,paddle2,r_score,l_score
     # print('send_to_Players barrier', barrier)
 
     if (instr == 'gameinfo') and barrier==[1,1]:
         cnt+=1
-        msg={'type':'info','content':tuple([ball,paddle1[1],paddle2[1],cnt])}
+        msg={'type':'info','content':tuple([ball,paddle1[1],paddle2[1],[r_score,l_score]])}
         for cli in range(0,len(playerlist)):
             playerlist[cli].send(json.dumps(msg).encode())
         barrier=[0,0]
@@ -150,11 +150,12 @@ def play():
             print('r_score ',r_score)
 
             if r_score < 1:
+                send_to_Players('get_score')
                 ball_init(True)
             else:
                 # barrier=1
                 send_to_Players('endgame')
-                print('ball ',ball)
+                
                 ball_init(False)
 
         if int(ball[0]) >= WIDTH + 1 - BALL_RADIUS - PAD_WIDTH and int(ball[1]) in range(

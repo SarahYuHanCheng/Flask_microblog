@@ -4,7 +4,18 @@
 {% block app_content %}
 <script language="JavaScript" type="text/javascript" src="{{ url_for('static', filename='jquery-3.3.1.js') }}"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/1.3.6/socket.io.min.js"></script>
-
+<div class="scores">
+        <div class="left-score">
+            <div>
+                <span>0</span>
+            </div>
+        </div>
+        <div class="right-score">
+            <div>
+                <span>0</span>
+            </div>
+        </div>
+</div>
 <h1>room wait</h1>
 <h2>join game</h2>
 <div class="row">
@@ -18,6 +29,7 @@
 <div class="container" id="game_playground" style="display:none">
     <h2> game_playground </h2>
     <div id="game_display">
+       
         <div class="row" style="height:500px">
     
                 <div class =playground>

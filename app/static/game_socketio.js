@@ -19,10 +19,11 @@ $(document).ready(function(){
     });
 
     socket.on('gameobject', function(data) {
-    
+    // data=tuple([ball,paddle1[1],paddle2[1],[r_score,l_score]])
         left_buff.push(data.msg[1][1]);
         right_buff.push(data.msg[2][1]);
         ball_buff.push(data.msg[0]);
+        score_update(data.msg[3]);
 
         $('#showgame').val($('#showgame').val() + data.msg[1][1]+ '\n');
         $('#showgame').scrollTop($('#showgame')[0].scrollHeight);
@@ -93,32 +94,34 @@ function leave_room() {
 }
 
 
-        function ball_update(position){
-            var width = $(".ball").outerWidth();
-            var height = $(".ball").outerHeight();
-            // console.log($(".ball").left())
-            $(".ball").css({"left":position[0]-width/2,"top":position[1]-height/2});
-        }
-        function left_update(position){
-            var windowHeight = $(window).height();
-            var height = $(".left-goalkeeper").outerHeight();
-            var p_top = position-height/2;
-            var topMax = windowHeight - p_top - 5;
-            if (p_top < 5) p_top = 5;
-            if (p_top > topMax) p_top = topMax;
-            $(".left-goalkeeper").css("top",p_top);	
-        }
-        function right_update(position){
-            var windowHeight = $(window).height();
-            var height = $(".right-goalkeeper").outerHeight();
-            var p_top = position-height/2;
-            var topMax = windowHeight - height - 5;
-            if (p_top < 5) p_top = 5;
-            if (p_top > topMax) p_top = topMax;
-            $(".right-goalkeeper").css("top",p_top);	
-        }
-
-        
+function ball_update(position){
+    var width = $(".ball").outerWidth();
+    var height = $(".ball").outerHeight();
+    // console.log($(".ball").left())
+    $(".ball").css({"left":position[0]-width/2,"top":position[1]-height/2});
+}
+function left_update(position){
+    var windowHeight = $(window).height();
+    var height = $(".left-goalkeeper").outerHeight();
+    var p_top = position-height/2;
+    var topMax = windowHeight - p_top - 5;
+    if (p_top < 5) p_top = 5;
+    if (p_top > topMax) p_top = topMax;
+    $(".left-goalkeeper").css("top",p_top);	
+}
+function right_update(position){
+    var windowHeight = $(window).height();
+    var height = $(".right-goalkeeper").outerHeight();
+    var p_top = position-height/2;
+    var topMax = windowHeight - height - 5;
+    if (p_top < 5) p_top = 5;
+    if (p_top > topMax) p_top = topMax;
+    $(".right-goalkeeper").css("top",p_top);	
+}
+function score_update(newscores){
+    Scores.setLeft(newscores[0]);
+    Scores.setRight(newscores[1]);
+}
 var startTime=new Date();
 var speed=10;
 var start_flag=0;
@@ -137,5 +140,43 @@ setInterval(function(){
         left_update(left_buff.shift());
         right_update(right_buff.shift());
         ball_update(ball_buff.shift());
+        
     }
 },speed);
+
+var Scores = {
+	// set lsef tscore with animation
+	setLeft: function(n) {
+		n = n || 0;
+        if ($(".left-score span").text() == n) {return;}
+        else{
+            $(".left-score span").text(n);
+        }
+
+	},
+	// set right score with animation
+	setRight: function(n) {
+		n = n || 0;
+		if ($(".right-score span").text() == n) {return;}
+		else {
+            $(".right-score span").text(n);
+        }
+	},
+	// returns left score
+	getLeft: function() {
+		return parseInt($(".left-score span").text());
+	},
+	// returns right score
+	getRight: function() {
+		return parseInt($(".right-score span").text());
+	},
+	// resets the scores [ 0 - 0 ]
+	reset: function() {
+		$(".left-score span").text(0);
+		$(".right-score span").text(0);
+	},
+	// plays the audio
+	play: function() {
+		$("#score")[0].play();
+	}
+}
