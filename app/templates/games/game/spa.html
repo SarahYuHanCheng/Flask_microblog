@@ -56,24 +56,16 @@
         
         <label for="mode" class="control-label">Language Mode:</label>
         <select id="mode" class="form-control"onChange="changeMode()">
-            <option>javascript</option>
-            <option>json</option>
-            <option>xml</option>
+            <option>C</option>
             <option>python</option>
+            <option>SCRIPT</option>
+            
         </select>
         
-        <pre id="editor" style="height:255px">function foo(items) {
-            var i;
-            for (i = 0; i &lt; items.length; i++) {
-                alert("Ace Rocks " + items[i]);
-            }
-        }</pre>
+        <pre id="editor" style="height:255px"></pre>
         <br>
         <form id="commit"  method="POST" action='#'>
-                <!-- <form method="GET"> -->
                         <input type="text" name="commit_msg" id="commit_msg" placeholder="commit msg">
-                        <!-- <input type="hidden" name="commit_msg" id="user_id" value="xxx"> -->
-                        <!-- <input type="hidden" name="commit_msg" id="log_id" value="xxx">-->
                         <input type="submit" value="commit"  > 
                 </form>
         

@@ -52,9 +52,10 @@ $(document).ready(function(){
         return false;
     });
     $('form#commit').submit(function(event) {
+        var glanguage = document.getElementById("mode").selectedIndex;
         var editor_content=editor.getValue();
         var commit_msg = document.getElementById('commit_msg').value; 
-        socket.emit('commit', {code: editor_content,commit_msg:commit_msg});
+        socket.emit('commit', {code: editor_content,commit_msg:commit_msg,glanguage:glanguage});
         return false;
     });
     
@@ -68,8 +69,7 @@ function changeMode(){
     var mode = document.getElementById('mode').value;
     editor.session.setMode("ace/mode/"+ mode);
     var contents = {
-        javascript: 'alert("Write something here...");',
-        json: '{"value": "Write something here..."}',
+        c:'main(){}',
         python: '\
 def run():\n\
     global paddle_vel,ball_pos,move_unit\n\
@@ -84,7 +84,8 @@ def run():\n\
     else: \n\
         paddle_vel=0\n\
         print("ball moves right, no need to move paddle1")\n',
-        xml: '<value attr="something">Write something here...</value>'
+        
+        sh: '<value attr="something">Write something here...</value>'
     };
     editor.setValue(contents[mode]);
     

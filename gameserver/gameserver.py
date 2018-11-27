@@ -128,18 +128,20 @@ def sandbox(compiler,path_, filename):
 		return e
 def set_language(language):
 	compiler = {
+		"0": ["gcc",".c"],
 		"1": ["python3",".py"],
-		"2": ["gcc",".c"],
-		"3": ["sh",".sh"]
+		"2": ["sh",".sh"]
 	}
-	language_obj = compiler.get(language, "Invalid month")
+	language_obj = compiler.get(language, "Invalid language ID")
+	
 	return language_obj 
 
 def save_code(code,log_id,user_id,category_id,game_id,language):
 	# data['code'],data['log_id'],data['user_id'],data['category_id'],data['game_id'],data['language']
 	# 在呼叫 sandbox前 將程式碼依遊戲人數？分類？為路徑 加上 lib後 存於 gameserver並回傳檔名
 	# "w"上傳新的程式碼會直接取代掉
-	language_res = set_language(language)
+	language_res = set_language(str(language))
+	print('language_res',language_res)
 	path = "%s/%s/%s/"%(category_id,game_id,language)
 	filename = "%s_%s%s"%(log_id,user_id,language_res[1])
 	try:
