@@ -11,12 +11,13 @@ import json
 def new_connect():
     print("client connect")
     
-@socketio.on('score',namespace = '/test') 
+@socketio.on('over',namespace = '/test') 
 def game_over(message):
     # msg：tuple([l_score,r_score,gametime])??
     # 使 webserver切換至 gameover路由
-    print('end game',message['msg'])
-    return redirect(url_for('games.gameover',room= message['msg'][3],msg= message['msg']))
+    print('over game',message['msg'])
+    emit('gameover', {'msg': message['msg']},namespace = '/test',room= message['msg'][2])
+    # return redirect(url_for('games.gameover',room= message['msg'][3],msg= message['msg']))
 
 @socketio.on('connectfromgame',namespace='/test')
 def test_connect(message):
@@ -55,10 +56,11 @@ def joined(message):
 
 @socketio.on('commit' ,namespace = '/test')
 def commit_code(message):
-    print("commit_code")
+   
     log_id = session.get('log_id', '')
     l=Log.query.filter_by(id=log_id).first()
     editor_content = message['code']
+    
     commit_msg =  message['commit_msg']
         
     code = Code(log_id=log_id, body=editor_content, commit_msg=commit_msg,game_id=l.game_id,user_id=current_user.id)
@@ -80,6 +82,7 @@ def commit_code(message):
             player_list.append(player.id)
 
     ws = create_connection("ws://localhost:6005")
+    print("commit_code",editor_content)
     ws.send(json.dumps({'from':'webserver','code':editor_content,'log_id':log_id,'user_id':current_user.id,'category_id':game.category_id,'game_id':l.game_id,'language':glanguage[0],'player_list':player_list}))
     result =  ws.recv() #
     print("Received '%s'" % result)

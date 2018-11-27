@@ -17,6 +17,12 @@ $(document).ready(function(){
         $('#chat').val($('#chat').val() + '<' + data.msg + '>\n');
         $('#chat').scrollTop($('#chat')[0].scrollHeight);
     });
+    socket.on('gameover', function(data){
+        
+        var tbl = document.getElementById('tblHTML');
+        alert(tbl.innerHTML);
+
+    });
 
     socket.on('gameobject', function(data) {
     // data=tuple([ball,paddle1[1],paddle2[1],[r_score,l_score]])

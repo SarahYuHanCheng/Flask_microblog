@@ -27,14 +27,19 @@ ball_vel = [0, 0]
 paddle1_move = 0
 paddle2_move = 0
 l_score = 0
+l_report = ""
 r_score = 0
+r_report = ""
+
 barrier=[0,0] # ensure a round fair
 cnt=0
 p1_rt=0.0001
 p2_rt=0.0001
 start=0 # control timeout loop
 lock = threading.Lock()
-
+class WebNamespace(BaseNamespace):
+    def on_aaa_response(self, *args):
+        print('on_aaa_response', args)
 def ball_init(right):
     global ball, ball_vel
     ball = [WIDTH // 2, HEIGHT // 2]
@@ -61,14 +66,9 @@ def __init__():
 def send_to_webserver():
     global ball,paddle1,paddle2,log_id
     print("sendtoweb")
-    class WebNamespace(BaseNamespace):
-        def on_aaa_response(self, *args):
-            print('on_aaa_response', args)
-
     with SocketIO('192.168.55.160', 5000) as socketIO:
         Web_namespace = socketIO.define(WebNamespace, '/test')
         Web_namespace.emit('connectfromgame',{'msg':tuple([ball,paddle1,paddle2,log_id])})#q1 log_id
-
 
 
 def send_to_Players(instr):
@@ -85,11 +85,15 @@ def send_to_Players(instr):
 
     elif instr == 'endgame':
         msg={'type':'over','content':ball}
-        # for cli in range(0,len(playerlist)):
-        #     playerlist[cli].send(json.dumps(msg).encode())
+        for cli in range(0,len(playerlist)):
+            playerlist[cli].send(json.dumps(msg).encode())
         barrier=[0,0]
         print('endgame %f'%time.time())
-        time.sleep(270)
+        with SocketIO('192.168.55.160', 5000) as socketIO:
+            Web_namespace = socketIO.define(WebNamespace, '/test')
+            Web_namespace.emit('over',{'msg':[l_report,r_report,log_id]})
+
+        time.sleep(20)
 
     barrier=[0,0]
 
@@ -191,7 +195,7 @@ def game(where):
     send_to_Players('gameinfo')
 
 def handle_client_connection(client_socket):
-    global paddle1_move,barrier,p1_rt,paddle2_move,p2_rt, playerlist, start
+    global paddle1_move,barrier,p1_rt,paddle2_move,p2_rt, playerlist, start,r_report,l_report
     client_socket.send(b'connectserver')
 
     while True:
@@ -258,6 +262,26 @@ def handle_client_connection(client_socket):
                 finally:
                     lock.release()
 
+        elif msg['type']=='gameover':
+            if msg['who']=='P1':
+                l_report = msg['content']
+                if r_report!="":
+                    
+                    with SocketIO('192.168.55.160', 5000) as socketIO:
+                        Web_namespace = socketIO.define(WebNamespace, '/test')
+                        Web_namespace.emit('over',{'msg':[l_report,r_report]})
+
+            elif msg['who']=='P2':
+                r_report = msg['content']
+                if l_report!="":
+                    with SocketIO('192.168.55.160', 5000) as socketIO:
+                        Web_namespace = socketIO.define(WebNamespace, '/test')
+                        Web_namespace.emit('over',{'msg':[l_report,r_report]})
+
+
+
+
+                
         elif msg['type']=='disconnect':
             if msg['who']=='P1':
                 print('P1 leave',cnt)
