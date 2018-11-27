@@ -49,8 +49,8 @@ def create_game():
 	# 新增遊戲
 	form = CreateGameForm()
 	if form.validate_on_submit():
-		game = Game(user_id=form.user_id.data,gamename=form.gamename.data,descript=form.descript.data, player_num=form.player_num.data,category_id=form.category_id.data)
-		# game = Game(user_id=form.user_id.data,gamename=form.gamename.data,descript=form.descript.data, game_lib=form.game_lib.data, example_code=form.example_code.data)
+		game = Game(user_id=form.user_id.data,gamename=form.gamename.data,descript=form.descript.data, player_num=form.player_num.data,\
+		category_id=form.category_id.data,game_lib_id=form.game_lib_id.data)
 		db.session.add(game)
 		db.session.commit()
 
