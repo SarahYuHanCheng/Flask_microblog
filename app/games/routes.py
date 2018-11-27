@@ -54,6 +54,7 @@ def create_game():
 		db.session.add(game)
 		db.session.commit()
 
+
 		# '''obj_to_json'''
 		g_query=Game.query.filter_by(gamename=form.gamename.data).first()
 		if isinstance(g_query, list):
@@ -96,53 +97,9 @@ def wait_to_play(log_id):
 	join_form = JoinForm()
 	print("wait_to_play ",log_id)
 	
-
-
-
 	return render_template('games/game/spa.html', title='wait_play_commit',join_form=join_form,room_id=log_id)
 
 
-
-
-@bp.route('/commit_code', methods=['GET','POST'])
-@login_required
-def commit_code():
-	# 用ws 提交程式碼給 gameserver
-	print("commit")
-	name = session.get('name', '')
-	room = session.get('room', '')# for gameserver to save exec code, not for db-code(no need to save room)  
-	log_id = session.get('log_id', '')
-	game_id = session.get('game_id', '')
-
-	editor_content = request.args.get('editor_content', 0, type=str)
-	commit_msg = request.args.get('commit_msg', 0, type=str)
-	code = Code(log_id=log_id, body=editor_content, commit_msg=commit_msg,game_id=game_id,user_id=current_user.id)
-	db.session.add(code)
-	db.session.commit()
-
-	l=Log.query.filter_by(id=1).first()
-	players = l.current_users
-
-	player_list=[]
-	print("players: ",players)
-	for i,player in enumerate(players):
-		print("type:",type(player.id),type(current_user.id))
-		if player.id == current_user.id:
-			players.pop(i)
-			l.current_users=players
-			print("in condition,,,players_list: ",players)
-			db.session.commit()
-		else:
-			player_list.append(player.id)
-	ws = create_connection("ws://localhost:6005")
-	ws.send(json.dumps({'from':'webserver','code':editor_content,'log_id':1,'user_id':current_user.id,'category_id':1,'game_id':1,'language':"python",'player_list':player_list}))
-	# ws.send(json.dumps({'from':'webserver','code':editor_content,'room_name':room,'logId':name,'user_id':current_user.id,'game_lib_id':game_lib_id,'language':"python",'player_list':[1,2]}))
-	# result =  ws.recv() #
-	result="www"
-	# print("Received '%s'" % result)
-	ws.close()
-	
-	return redirect(url_for('games.game_view',log_id=current_log,box_res=result))
 
 @bp.route('/', methods=['GET', 'POST'])
 def index():
