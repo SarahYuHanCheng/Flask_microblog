@@ -67,8 +67,6 @@ def commit_code(message):
     db.session.add(code)
     db.session.commit()
     game = Game.query.filter_by(id=l.game_id).first()
-    glanguage = Game_lib.query.with_entities(Game_lib.language_id).filter_by(id=game.game_lib_id).first()
-
     players = l.current_users
     player_list = []
 
@@ -82,7 +80,7 @@ def commit_code(message):
             player_list.append(player.id)
 
     ws = create_connection("ws://localhost:6005")
-    ws.send(json.dumps({'from':'webserver','code':editor_content,'log_id':log_id,'user_id':current_user.id,'category_id':game.category_id,'game_id':l.game_id,'language':glanguage[0],'player_list':player_list}))
+    ws.send(json.dumps({'from':'webserver','code':editor_content,'log_id':log_id,'user_id':current_user.id,'category_id':game.category_id,'game_id':l.game_id,'language':message['glanguage'],'player_list':player_list}))
     result =  ws.recv() #
     print("Received '%s'" % result)
     ws.close()
