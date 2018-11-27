@@ -56,11 +56,11 @@ body {
 }
 .scores {
 	position: fixed;
-	/* top: 45px;
+	top: 45px;
 	left: 12.5%;
 	width: 75%;
 	height: 48px;
-	overflow: hidden; */
+	overflow: hidden;
 }
 .scores div:first-child {
 	position: relative;
