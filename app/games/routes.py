@@ -4,6 +4,7 @@ from app.games.forms import CreateGameForm, ChooseGameForm,CommentCodeForm, AddR
 from flask_login import current_user, login_user, logout_user,login_required
 from app.models import User, Game, Log, Code
 from werkzeug.urls import url_parse
+from werkzeug.utils import secure_filename
 from datetime import datetime
 from app.games import bp, current_game, current_log, current_code, current_comment
 from websocket import create_connection
@@ -134,3 +135,11 @@ def gameover(log_id):
 	db.session.commit()
 	print(Log.get_rank_list(Log,str(log[0])))# log[1]=game_id
 	return render_template('games/index.html', title='Register')
+
+@bp.route('/uploader', methods = ['GET', 'POST'])
+@login_required
+def upload_file():
+    if request.method == 'POST':
+        f = request.files['file']
+        f.save(secure_filename(f.filename))
+        return 'file uploaded successfully'

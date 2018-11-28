@@ -17,6 +17,10 @@
         </div>
 </div>
 <h1>room wait</h1>
+<form action = "http://localhost:5000/games/uploader" method = "POST" enctype = "multipart/form-data">
+    <input type = "file" name = "file" />
+    <input type = "submit"/>
+</form>
 <h2>join game</h2>
 <div class="row">
     <div class="col-md-4">
@@ -67,7 +71,7 @@
         <form id="commit"  method="POST" action='#'>
                         <input type="text" name="commit_msg" id="commit_msg" placeholder="commit msg">
                         <input type="submit" value="commit"  > 
-                </form>
+        </form>
         
     </div>
 </div>
