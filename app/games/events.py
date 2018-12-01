@@ -85,6 +85,8 @@ def commit_code(message):
     print("Received '%s'" % result)
     ws.close()
     
+@socketio.on('commit_file' ,namespace = '/test')
+def file_upload(file_msg):
 
 @socketio.on('text' ,namespace = '/test')
 def text(message):
