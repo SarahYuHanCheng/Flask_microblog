@@ -16,6 +16,9 @@
             </div>
         </div>
 </div>
+<form enctype="multipart/form-data">
+    <input id="uploadImage" type="file">
+</form>
 <h1>room wait</h1>
 <form action = "http://localhost:5000/games/uploader" method = "POST" enctype = "multipart/form-data">
     <input type = "file" name = "file" />
@@ -80,5 +83,4 @@
     </script>
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
 <script src="{{ url_for('static', filename='game_socketio.js') }}"></script>
-
 {% endblock %}

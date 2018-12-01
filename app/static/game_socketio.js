@@ -1,4 +1,9 @@
 
+var script = document.createElement('script');
+script.src = 'http://code.jquery.com/jquery-1.11.0.min.js';
+script.type = 'text/javascript';
+document.getElementsByTagName('head')[0].appendChild(script);
+
 var socket;
 var left_buff=[],right_buff=[],ball_buff=[];
 var buff_min=20,buff_normal=50;
@@ -61,6 +66,39 @@ $(document).ready(function(){
     
 
 });
+
+function previewFiles(files) {
+    if (files && files.length >= 1) {
+        $.map(files, file => {
+            convertFile(file)
+                .then(data => {
+                  console.log(data) // 把編碼後的字串輸出到console
+                  showPreviewImage(data, file.name)
+                })
+                .catch(err => console.log(err))
+        })
+    }
+}
+
+// 使用FileReader讀取檔案，並且回傳Base64編碼後的source
+function convertFile(file) {
+    return new Promise((resolve,reject)=>{
+        // 建立FileReader物件
+        let reader = new FileReader()
+        // 註冊onload事件，取得result則resolve (會是一個Base64字串)
+        reader.onload = () => { resolve(reader.result) }
+        // 註冊onerror事件，若發生error則reject
+        reader.onerror = () => { reject(reader.error) }
+        // 讀取檔案
+        reader.readAsDataURL(file)
+    })
+}
+// 當上傳檔案改變時清除目前預覽圖，並且呼叫previewFiles()
+$("#uploadImage").change(function(){
+    console.log('Upload');
+    $("#previewDiv").empty() // 清空當下預覽
+    previewFiles(this.files) // this即為<input>元素
+})
 var editor = ace.edit("editor");
 editor.setTheme("ace/theme/twilight");
 editor.session.setMode("ace/mode/javascript");
