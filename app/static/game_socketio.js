@@ -1,6 +1,6 @@
 
 var script = document.createElement('script');
-script.src = 'http://code.jquery.com/jquery-1.11.0.min.js';
+script.src = '../../static/jquery-3.3.1.js';
 script.type = 'text/javascript';
 document.getElementsByTagName('head')[0].appendChild(script);
 
@@ -63,7 +63,22 @@ $(document).ready(function(){
         socket.emit('commit', {code: editor_content,commit_msg:commit_msg,glanguage:glanguage});
         return false;
     });
-    
+
+    $('form#upload_to_server').submit(function(event) {
+        
+        var glanguage = document.getElementById("mode").selectedIndex;
+        var commit_msg = document.getElementById('commit_msg').value; 
+
+        let choosed= $("#chooseFile")[0].files;
+        convertFile(choosed[0]).then(data => {
+            // 把編碼後的字串 send to webserver
+            socket.emit('commit', {code: data,commit_msg:commit_msg,glanguage:glanguage});
+        return false;
+            
+          })
+          .catch(err => console.log(err))
+        
+    });
 
 });
 
@@ -72,12 +87,15 @@ function previewFiles(files) {
         $.map(files, file => {
             convertFile(file)
                 .then(data => {
-                  console.log(data) // 把編碼後的字串輸出到console
-                  showPreviewImage(data, file.name)
+                  // 把編碼後的字串輸出到console
+                //   const upload_file = data
+                  console.log('preview: ',data)
+                //   showPreviewImage(data, file.name)
                 })
                 .catch(err => console.log(err))
         })
     }
+
 }
 
 // 使用FileReader讀取檔案，並且回傳Base64編碼後的source
@@ -93,12 +111,15 @@ function convertFile(file) {
         reader.readAsDataURL(file)
     })
 }
+
 // 當上傳檔案改變時清除目前預覽圖，並且呼叫previewFiles()
-$("#uploadImage").change(function(){
-    console.log('Upload');
+$("#chooseFile").change(function(){
+    console.log(this)
     $("#previewDiv").empty() // 清空當下預覽
     previewFiles(this.files) // this即為<input>元素
+    console.log('this.files',this.files);
 })
+
 var editor = ace.edit("editor");
 editor.setTheme("ace/theme/twilight");
 editor.session.setMode("ace/mode/javascript");

@@ -17,13 +17,12 @@
         </div>
 </div>
 <form enctype="multipart/form-data">
-    <input id="uploadImage" type="file">
+    <input id="chooseFile" type="file">
+</form>
+<form id= "upload_to_server" enctype="multipart/form-data" action='#'>
+    <input type="submit" value="upload_to_server"  > 
 </form>
 <h1>room wait</h1>
-<form action = "http://localhost:5000/games/uploader" method = "POST" enctype = "multipart/form-data">
-    <input type = "file" name = "file" />
-    <input type = "submit"/>
-</form>
 <h2>join game</h2>
 <div class="row">
     <div class="col-md-4">
