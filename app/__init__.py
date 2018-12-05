@@ -26,7 +26,11 @@ def create_app(config_class=Config):
 	app = Flask(__name__)
 	app.config.from_object(config_class)
 	app.config['SECRET_KEY'] = 'secret!'
-	
+	app.config['MAIL_SERVER']='smtp.googlemail.com'
+	app.config['MAIL_PORT']='587'
+	app.config['MAIL_USE_TLS']='1'
+	app.config['MAIL_USERNAME']='sarahcheng1231'
+	app.config['MAIL_PASSWORD']='-----edit-----'
 	socketio.init_app(app)
 
 	db.init_app(app)
