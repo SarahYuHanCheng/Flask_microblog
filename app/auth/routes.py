@@ -24,8 +24,9 @@ def send_confirm_email(email_data):
 
 @bp.route('/user_confirm/<token>')
 def user_confirm(token):
-    # user = User()
-    data = current_user.validate_confirm_token(token)
+    user = User()
+    print('user:',user)
+    data = user.validate_confirm_token(token)
     print('data: ',data)
     if data:
         user = User.query.filter_by(id=data.get('user_id')).first()
